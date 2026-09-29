@@ -14,6 +14,7 @@
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #151918; --paper: #1f2422; --ink: #e5e8e3; --sub: #9aa39f; --line: #3a423f; --grid: #2d3431; --accent: #9cc3dd; --red: #ff8a7a; --shade: #4d5753; --chip: #262c2a; color-scheme: dark; } }
 :root[data-theme="dark"] { --bg: #151918; --paper: #1f2422; --ink: #e5e8e3; --sub: #9aa39f; --line: #3a423f; --grid: #2d3431; --accent: #9cc3dd; --red: #ff8a7a; --shade: #4d5753; --chip: #262c2a; color-scheme: dark; }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { background: var(--bg); color: var(--ink); font-family: var(--gothic); font-size: 15px; line-height: 1.7; }
 .wrap { max-width: 900px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 60px; }
 .top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; margin-bottom: 14px; }
@@ -42,7 +43,7 @@ input[type=number] { width: 4.2em; }
 .dn { display: inline-grid; place-items: center; min-width: 28px; height: 28px; border: 2px solid var(--ink); font-weight: 700; font-size: 1.05rem; font-family: var(--gothic); }
 .dn.sm { min-width: 22px; height: 22px; font-size: .85rem; border-width: 1.5px; margin-right: 8px; }
 .dt { font-size: .78rem; color: var(--sub); letter-spacing: .05em; }
-.regen { margin-left: auto; font: inherit; font-size: .75rem; color: var(--accent); background: none; border: 1px solid var(--line); border-radius: 3px; padding: 2px 8px; cursor: pointer; }
+.regen { font: inherit; font-size: .75rem; color: var(--accent); background: none; border: 1px solid var(--line); border-radius: 3px; padding: 2px 8px; cursor: pointer; }
 .lead { margin: 4px 0 10px; }
 .figwrap { display: flex; justify-content: center; margin: 8px 0 12px; overflow-x: auto; }
 .qs { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
@@ -92,6 +93,15 @@ sup { font-size: .7em; }
 .ansfig { margin-top: 6px; } .ansfig svg { width: 320px; height: auto; }
 .dialog { border: 1px solid var(--ink); padding: 8px 12px; margin: 8px 0; display: grid; gap: 4px; }
 .dl { display: grid; grid-template-columns: 5.2em 1fr; gap: 6px; } .who { font-family: var(--gothic); font-size: .88rem; } .say { min-width: 0; }
+.code { font-family: var(--gothic); font-size: .72rem; color: var(--sub); margin-left: 10px; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.dh .code { margin-left: auto; } .dh .regen { margin-left: 8px; }
+.codeform { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-left: auto; font-size: .82rem; color: var(--sub); }
+.codeform input { font: inherit; font-size: .9rem; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; width: 12em; max-width: 100%; }
+.codemsg { font-size: .8rem; color: var(--red); min-height: 1em; }
+.field:disabled { opacity: .4; cursor: not-allowed; }
+.field.moshi { border-style: dashed; } .field.moshi.on { border-style: solid; }
+.mh { margin-top: 18px; background: var(--paper); border: 2px solid var(--ink); padding: 12px 18px; display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content: space-between; align-items: center; font-family: var(--mincho); }
+.mh b { font-size: 1.2rem; font-family: var(--display); }
 .bagl { align-self: center; font-family: var(--gothic); font-size: .85rem; margin: 0 4px 0 12px; }
 .coin { width: 3.4em; height: 3.4em; border-radius: 50%; border: 1.5px solid var(--ink); display: inline-grid; place-items: center; font-family: var(--gothic); font-size: .85rem; }
 .numtab td, .numtab th { padding: 1px 8px; font-size: .9rem; }
@@ -133,22 +143,33 @@ sup { font-size: .7em; }
   <div class="panel-ctl no-print">
     <div class="fields" id="fields" role="group" aria-label="分野"></div>
     <div class="row">
-      <label for="pat">パターン <select id="pat"></select></label>
-      <label for="count">大問の数 <input type="number" id="count" min="1" max="5" value="1"></label>
+      <label for="grade">学年 <select id="grade"><option value="1">中1まで</option><option value="2">中2まで</option><option value="3">中3まで（全範囲）</option></select></label>
+      <label for="level">難易度 <select id="level"><option value="1">基礎</option><option value="2">標準</option><option value="3">発展</option></select></label>
+      <label for="pat" id="patrow">パターン <select id="pat"></select></label>
+      <label for="count" id="countlab">大問の数 <input type="number" id="count" min="1" max="5" value="1"></label>
+    </div>
+    <div class="row">
       <button type="button" class="btn" id="go">問題をつくる</button>
       <button type="button" class="btn redb" id="ans" aria-pressed="false">答えを表示</button>
       <button type="button" class="btn ghost" id="print" hidden>印刷</button>
+      <form id="codeform" class="codeform"><label for="code">問題番号</label><input id="code" type="text" inputmode="text" placeholder="例 1-00-123456-32" autocomplete="off"><button type="submit" class="btn ghost">番号から出す</button></form>
     </div>
+    <div class="codemsg" id="codemsg" role="status"></div>
   </div>
+  <div id="moshihead"></div>
   <div class="sheet" id="sheet"></div>
   <div class="key" id="key"></div>
   <p class="foot no-print">数値・図形・問われ方は毎回ランダムに変わります。答えを表示すると，各問の下と最後の「解答・解説」に答えが出ます。</p>
 </div>
 <script>
 // ===== core: 乱数・分数・根号・式の整形・SVG =====
-const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
-const pick = a => a[Math.floor(Math.random() * a.length)];
-const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+// 再現できる擬似乱数（mulberry32）
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let RNG = Math.random;
+function seedRNG(seed) { RNG = mulberry32(seed); }
+const R = (a, b) => a + Math.floor(RNG() * (b - a + 1));
+const pick = a => a[Math.floor(RNG() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(RNG() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const sample = (a, k) => shuffle(a).slice(0, k);
 const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a; };
 const lcm = (a, b) => a / gcd(a, b) * b;
@@ -327,7 +348,7 @@ SM.bunsuShiki = () => {
   const cx = a1 * (L / d1) - a2 * (L / d2), cy = b1 * (L / d1) - b2 * (L / d2); if (!cx || !cy) return null;
   const g = gcd(gcd(cx, cy), L);
   const ans = frac(poly([[cx / g, X], [cy / g, Y]]).replace(/^−/, MINUS), L / g);
-  return { q: `${frac(poly([[a1, X], [b1, Y]]), d1)} ${MINUS} ${frac(poly([[a2, X], [b2, Y]]), d2)}`, a: L / g === 1 ? poly([[cx, X], [cy, Y]]) : ans };
+  return { q: `${frac(poly([[a1, X], [b1, Y]]), d1)} ${MINUS} ${frac(poly([[a2, X], [b2, Y]]), d2)}`, a: L / g === 1 ? poly([[cx / g, X], [cy / g, Y]]) : ans };
 };
 SM.tankou = () => {
   const [u, w] = pick([['a', 'b'], ['x', 'y']]);
@@ -531,8 +552,8 @@ SM.kyori = () => { const x1 = R(-5, 5), y1 = R(-5, 5), dx = RNZ(-6, 6), dy = RNZ
 SM.heikin = () => { const n = pick([5, 6, 7, 8]); const data = range(1, n).map(() => R(2, 15)); const sum = data.reduce((a, b) => a + b, 0); if (sum % n && R(0, 1)) return null; const t = pick(['平均値', '中央値', '最頻値']);
   const srt = data.slice().sort((a, b) => a - b); const cnt = {}; data.forEach(v => cnt[v] = (cnt[v] || 0) + 1); const mx = Math.max(...Object.values(cnt)); const modes = Object.keys(cnt).filter(k => cnt[k] === mx);
   if (t === '最頻値' && (mx === 1 || modes.length > 1)) return null;
-  const ans = t === '平均値' ? fmtDec(sum / n, 2) : t === '中央値' ? fmtDec(median(srt)) : modes[0];
-  return { q: `下のデータは，ある班の生徒 ${n} 人が1か月に読んだ本の冊数である。このデータの${t}を求めなさい。<div class="data">${data.join('　')}<span class="unit">（単位：冊）</span></div>`, a: `${ans} 冊` }; };
+  const intAvg = sum % n === 0; const ans = t === '平均値' ? fmtDec(sum / n, 1) : t === '中央値' ? fmtDec(median(srt)) : modes[0];
+  return { q: `下のデータは，ある班の生徒 ${n} 人が1か月に読んだ本の冊数である。このデータの${t}を求めなさい。${t === '平均値' && !intAvg ? 'ただし，小数第2位を四捨五入して小数第1位まで求めなさい。' : ''}<div class="data">${data.join('　')}<span class="unit">（単位：冊）</span></div>`, a: `${ans} 冊` }; };
 SM.kousi = () => { const a = pick([6, 8, 10, 12, 16, 18, 20]); const d = range(1, a).filter(v => a % v === 0).length; return { q: `関数 ${Y} = ${frac(a, X)} のグラフ上の点で，${X} 座標，${Y} 座標がともに整数である点は何個あるか求めなさい。`, a: `${2 * d} 個` }; };
 SM.nejire = () => { if (R(0, 1)) return { q: `直方体ABCD−EFGHで，辺ABとねじれの位置にある辺は何本あるか求めなさい。`, a: '4 本（CG，DH，EH，FG）' }; return pick([{ q: `三角柱ABC−DEFで，辺ABとねじれの位置にある辺をすべて答えなさい。`, a: 'CF，DF，EF' }, { q: `直方体ABCD−EFGHで，面ABCDと平行な辺は何本あるか求めなさい。`, a: '4 本（EF，FG，GH，HE）' }, { q: `直方体ABCD−EFGHで，辺AEと垂直な面をすべて答えなさい。`, a: '面ABCD，面EFGH' }]); };
 SM.murisuu = () => { const st = [['√4 は無理数である。', false], ['√2 は循環しない無限小数である。', true], ['5 の平方根は √5 と −√5 である。', true], ['√(−3)<sup>2</sup> = −3 である。', false], ['√9 = ±3 である。', false], ['0.333… は有理数である。', true], ['√2 + √3 = √5 である。', false], ['√12 = 2√3 である。', true], ['π は有理数である。', false], ['−√7 &lt; −2 である。', true]].map(([t, v]) => [t.replace('√(−3)<sup>2</sup>', rt('(−3)<sup>2</sup>')).replace(/√(\d+)/g, (m, n) => rt(n)), v]);
@@ -544,17 +565,20 @@ const SM_CALC = ['seifu', 'bunshiki', 'tankou', 'heihou', 'tenkai', 'bunsuShiki'
 const SM_OTHER = { hou: ['renritsu', 'niji', 'henkei', 'inbun', 'ichiji'], kan: ['hanpirei', 'itiji', 'hen_iki', 'henka', 'hirei', 'kyori', 'kousi'], kazu: ['sqrtN', 'sqrtCount', 'soinsu', 'futoushiki', 'murisuu', 'yakusuu'], data: ['hyouhon', 'shibun', 'dice', 'cards', 'heikin'], zu: ['kakudo_tayoukei', 'enshuukaku', 'heikou_kaku', 'ensui', 'sanheihou', 'kyuu', 'ougi', 'soujihi', 'nejire', 'kyuu_entyuu'] };
 const SM_LABEL = { seifu: '正負の数の計算', bunshiki: '文字式の計算', tankou: '単項式の乗除', heihou: '平方根の計算', tenkai: '式の展開', bunsuShiki: '分数をふくむ式', renritsu: '連立方程式', niji: '2次方程式', henkei: '等式の変形', inbun: '因数分解', hanpirei: '反比例', itiji: '一次関数の式', hen_iki: '2乗に比例する関数の変域', henka: '変化の割合', sqrtN: '平方根と自然数', sqrtCount: '平方根の大小', soinsu: '素因数分解', futoushiki: '不等式', hyouhon: '標本調査', shibun: '四分位数', dice: 'さいころの確率', cards: 'カードの確率', kakudo_tayoukei: '多角形の角', enshuukaku: '円周角', heikou_kaku: '平行線と角', ensui: '円錐・回転体', sanheihou: '三平方の定理', kyuu: '球', ougi: 'おうぎ形', soujihi: '相似比と面積比・体積比', ichiji: '一次方程式', hirei: '比例', kyori: '2点間の距離', heikin: '代表値', kousi: '反比例と格子点', nejire: '空間の位置関係', murisuu: '平方根・無理数の性質', yakusuu: '約数・公約数', kyuu_entyuu: '球と円柱' };
 function genItem(key) { return retry(() => { const r = SM[key](); if (!r) return null; if (r.chk === false) return null; r.key = key; return r; }); }
+const OPT = { grade: 3, level: 2 }; // 学年（1〜3）と難易度（1基礎 2標準 3発展）
+const smOK = k => (typeof SM_GRADE === 'undefined' || (SM_GRADE[k] || 1) <= OPT.grade);
 function genShomon() {
-  const calc = sample(SM_CALC, R(3, 4)).sort((a, b) => SM_CALC.indexOf(a) - SM_CALC.indexOf(b));
-  const groups = Object.keys(SM_OTHER); const other = [];
-  groups.forEach(g => other.push(pick(SM_OTHER[g])));
-  const extra = sample(groups, R(0, 1)).map(g => pick(SM_OTHER[g].filter(k => !other.includes(k))));
-  const keys = calc.concat(other, extra);
-  const items = keys.map(genItem);
-  // 計算はまとめて①〜
+  const calcPool = SM_CALC.filter(smOK); const nCalc = Math.min(calcPool.length, OPT.level === 1 ? R(2, 3) : R(3, 4));
+  const calc = sample(calcPool, nCalc).sort((a, b) => SM_CALC.indexOf(a) - SM_CALC.indexOf(b));
+  const groups = Object.keys(SM_OTHER).filter(g => SM_OTHER[g].some(smOK)); const other = [];
+  groups.forEach(g => other.push(pick(SM_OTHER[g].filter(smOK))));
+  let nExtra = OPT.level === 1 ? 0 : OPT.level === 3 ? R(2, 3) : R(0, 1);
+  const extra = []; shuffle(groups).forEach(g => { if (extra.length >= nExtra) return; const c = SM_OTHER[g].filter(k => smOK(k) && !other.includes(k) && !extra.includes(k)); if (c.length) extra.push(pick(c)); });
+  let rest0 = other.concat(extra); if (OPT.level === 1) rest0 = rest0.slice(0, Math.max(3, rest0.length - 1));
+  const items = calc.concat(rest0).map(genItem);
   const calcItems = items.slice(0, calc.length); const rest = items.slice(calc.length);
-  const first = { q: `次の計算をしなさい。<div class="calc">${calcItems.map((it, i) => `<div>${MARU[i]}　${it.q}</div>`).join('')}</div>`, a: calcItems.map((it, i) => `${MARU[i]} ${it.a}`).join('　'), tag: '計算' };
-  const qs = [first].concat(rest.map(it => ({ q: /[。]$|<\/svg>$|<\/div>$/.test(it.q) ? it.q : it.q + ' を計算しなさい。', a: it.a, tag: SM_LABEL[it.key] })));
+  const first = { q: `次の計算をしなさい。<div class="calc">${calcItems.map((it, i) => `<div>${MARU[i]}　${it.q}</div>`).join('')}</div>`, a: calcItems.map((it, i) => `${MARU[i]} ${it.a}`).join('　'), tag: '計算', key: 'calc', sub: calcItems };
+  const qs = (calcItems.length ? [first] : []).concat(rest.map(it => ({ q: /[。]$|<\/svg>$|<\/div>$/.test(it.q) ? it.q : it.q + ' を計算しなさい。', a: it.a, ex: it.ex, tag: SM_LABEL[it.key], key: it.key, raw: it })));
   return { title: '小問集合', lead: `次の(1)〜(${qs.length})の問いに答えなさい。`, items: qs };
 }
 
@@ -1299,7 +1323,7 @@ KP.dosuu = (useHist = false) => {
   const ctx = pick([['通学時間', '分', 0, pick([5, 10])], ['1週間の読書時間', '時間', 0, 2], ['ハンドボール投げの記録', 'm', 5, pick([3, 5])], ['握力', 'kg', 15, 5], ['50 m 走の記録', '秒', 6.5, 0.5]]);
   const s0 = ctx[2], w = ctx[3];
   // 度数を作る
-  const fr = new Array(k).fill(0); for (let i = 0; i < N; i++) { const x = Math.min(k - 1, Math.max(0, Math.round((Math.random() + Math.random() + Math.random()) / 3 * (k - 1) + (Math.random() - 0.5)))); fr[x]++; }
+  const fr = new Array(k).fill(0); for (let i = 0; i < N; i++) { const x = Math.min(k - 1, Math.max(0, Math.round((RNG() + RNG() + RNG()) / 3 * (k - 1) + (RNG() - 0.5)))); fr[x]++; }
   const mx = Math.max(...fr); if (fr.filter(v => v === mx).length > 1 || fr.some(v => v === 0)) return null;
   const mode = s0 + w * fr.indexOf(mx) + w / 2;
   let cum = 0, medCls = -1; const half = N / 2; for (let i = 0; i < k; i++) { cum += fr[i]; if (medCls < 0 && cum >= half) { if (N % 2 === 0 && cum === half) return null; medCls = i; break; } }
@@ -1915,61 +1939,119 @@ SO.douten2 = () => {
 };
 Object.assign(SO_LABEL, { teika: '連立方程式の利用（定価と割引）', douten2: '2次方程式の利用（2つの動点）' });
 
+// ===== 学年・難易度のタグ =====  [学年(1〜3), 難易度(1基礎 2標準 3発展)]
+const SM_GRADE = { seifu: 1, bunshiki: 1, bunsuShiki: 2, tankou: 2, heihou: 3, tenkai: 3, inbun: 3, renritsu: 2, niji: 3, henkei: 2, hanpirei: 1, itiji: 2, hen_iki: 3, henka: 3, sqrtN: 3, sqrtCount: 3, soinsu: 1, futoushiki: 1, hyouhon: 3, shibun: 2, dice: 2, cards: 2, kakudo_tayoukei: 2, enshuukaku: 3, heikou_kaku: 2, ensui: 1, sanheihou: 3, kyuu: 1, ougi: 1, soujihi: 3, ichiji: 1, hirei: 1, kyori: 3, heikin: 1, kousi: 1, nejire: 1, murisuu: 3, yakusuu: 1, kyuu_entyuu: 1 };
+const PAT_META = {
+  kansuu: { parab_line: [3, 2], parab_hyper: [3, 2], two_lines: [2, 1], rect_parab: [3, 2], parab_min: [3, 3], kaiten: [2, 2], parab_rect: [3, 2], douten_parab: [3, 3], hanpirei: [2, 1], sougou: [3, 3] },
+  zukei: { heikoushihenkei: [3, 2], sankaku_heikou: [3, 2], en_souji: [3, 2], cuboid: [3, 2], ensui: [3, 1], sanheihou: [3, 2], shikakusui: [3, 2], goudou_sq: [3, 3], sessen: [3, 2], sankakuchuu: [3, 2], daikei_kaiten: [3, 2], nitoubun: [3, 3], sakuzu: [1, 2], ensui_kyuu: [3, 3], cube_cut: [3, 3], chuuten: [3, 2], ougi: [1, 1], nitouhen: [2, 2], touei: [3, 1], tenkai: [1, 1] },
+  kakuritsu: { cards: [2, 1], balls: [2, 1], dice_grid: [3, 2], boxplot: [2, 2], dosuu: [1, 1], coins: [2, 1], numline: [2, 1], twobags: [2, 1], sq_move: [2, 2], hist: [1, 1], kijutsu: [2, 2], janken: [2, 1], narabe: [2, 2], kuji: [2, 1], dice_line: [2, 3] },
+  kisoku: { matchi: [1, 1], goishi: [3, 2], hyou: [2, 2], tile: [3, 2], calendar: [2, 2], pyramid: [2, 2], checker: [3, 2], shuuki: [1, 1], overlap: [1, 1], sankaku: [3, 2], teigi: [1, 3] },
+  sonota: { douten: [2, 2], ryoukin: [2, 1], renritsu: [2, 1], tank: [2, 2], setsumei: [2, 2], diagram: [2, 2], idou: [2, 3], kabusoku: [1, 1], niji_bun: [3, 2], shokuen: [2, 2], kaiwa: [3, 2], dankai: [1, 2], teika: [2, 1], douten2: [3, 3] },
+};
+const meta = (f, k) => (f === 'shomon' ? [1, 2] : (PAT_META[f] && PAT_META[f][k]) || [3, 2]);
+
 // ===== 登録と画面 =====
-function shomonGroup(keys, title) { return () => { const ks = []; while (ks.length < 8) ks.push(...shuffle(keys)); const items = ks.slice(0, 8).map(genItem).map(it => ({ q: /[。]$|<\/svg>$|<\/div>$/.test(it.q) ? it.q : it.q + ' を計算しなさい。', a: it.a, ex: it.ex, tag: SM_LABEL[it.key] })); return { title, lead: `次の(1)〜(8)の問いに答えなさい。`, items }; }; }
+function fixQ(it) { return { q: /[。]$|<\/svg>$|<\/div>$/.test(it.q) ? it.q : it.q + ' を計算しなさい。', a: it.a, ex: it.ex, tag: SM_LABEL[it.key], key: it.key, raw: it }; }
+function shomonGroup(keys, title) {
+  return () => { const pool = keys.filter(smOK); if (!pool.length) return null; const n = OPT.level === 1 ? 6 : OPT.level === 3 ? 10 : 8; const ks = []; while (ks.length < n) ks.push(...shuffle(pool)); const items = ks.slice(0, n).map(genItem).map(fixQ); return { title, lead: `次の(1)〜(${n})の問いに答えなさい。`, items }; };
+}
 const FIELDS = {
   shomon: { name: '小問集合', note: '計算・方程式・関数・データ・図形を1題に', pats: {
     mix: ['おまかせ（入試の第1問形式）', genShomon], calc: ['計算だけ', shomonGroup(SM_CALC, '小問集合（計算）')], hou: ['方程式・因数分解', shomonGroup(SM_OTHER.hou, '小問集合（方程式）')],
     kan: ['関数の小問', shomonGroup(SM_OTHER.kan, '小問集合（関数）')], kazu: ['数と式（平方根・不等式など）', shomonGroup(SM_OTHER.kazu, '小問集合（数と式）')], data: ['データ・確率の小問', shomonGroup(SM_OTHER.data, '小問集合（データ・確率）')], zu: ['図形の小問', shomonGroup(SM_OTHER.zu, '小問集合（図形）')] } },
   kansuu: { name: '関数', note: '放物線・直線・反比例と面積', pats: Object.fromEntries(Object.keys(KF).map(k => [k, [KF_LABEL[k], KF[k]]])) },
-  zukei: { name: '平面・空間図形', note: '相似の証明・面積比・立体', pats: Object.fromEntries(Object.keys(ZU).map(k => [k, [ZU_LABEL[k], ZU[k]]])) },
+  zukei: { name: '平面・空間図形', note: '相似・合同・作図・立体', pats: Object.fromEntries(Object.keys(ZU).map(k => [k, [ZU_LABEL[k], ZU[k]]])) },
   kakuritsu: { name: '確率・データ', note: 'カード・玉・さいころ・箱ひげ図', pats: Object.fromEntries(Object.keys(KP).map(k => [k, [KP_LABEL[k], KP[k]]])) },
-  kisoku: { name: '規則性', note: 'n番目の式・数の表', pats: Object.fromEntries(Object.keys(KS).map(k => [k, [KS_LABEL[k], KS[k]]])) },
-  sonota: { name: '文章題・関数の利用', note: '動点・料金・連立方程式・説明', pats: Object.fromEntries(Object.keys(SO).map(k => [k, [SO_LABEL[k], SO[k]]])) },
+  kisoku: { name: '規則性', note: 'n番目の式・数の表・定義', pats: Object.fromEntries(Object.keys(KS).map(k => [k, [KS_LABEL[k], KS[k]]])) },
+  sonota: { name: '文章題・関数の利用', note: '動点・料金・方程式・会話文', pats: Object.fromEntries(Object.keys(SO).map(k => [k, [SO_LABEL[k], SO[k]]])) },
 };
-function generate(field, pat) {
-  const F = FIELDS[field]; const key = pat === 'any' ? pick(Object.keys(F.pats)) : pat;
-  const prob = retry(() => { try { return F.pats[key][1](); } catch (e) { if (e.message === 'zero div') return null; throw e; } });
-  prob.field = field; prob.pat = key; return prob;
+const FKEYS = Object.keys(FIELDS);
+const GRADE_NAME = { 1: '中1まで', 2: '中2まで', 3: '中3まで（全範囲）' }, LEVEL_NAME = { 1: '基礎', 2: '標準', 3: '発展' };
+// 学年で使えるパターン
+function patsFor(field, grade) { const F = FIELDS[field]; return Object.keys(F.pats).filter(k => { if (field === 'shomon') { if (k === 'mix') return true; const pool = k === 'calc' ? SM_CALC : SM_OTHER[k]; return pool.some(x => (SM_GRADE[x] || 1) <= grade); } return meta(field, k)[0] <= grade; }); }
+// おまかせで選ぶ候補（難易度も考慮）
+function autoPats(field, grade, level) { const base = patsFor(field, grade); if (field === 'shomon') return ['mix']; let c = base.filter(k => (level === 1 ? meta(field, k)[1] <= 2 : level === 3 ? meta(field, k)[1] >= 2 : true)); if (level === 3) c = c.concat(c.filter(k => meta(field, k)[1] === 3)); return c.length ? c : base; }
+const pad = (n, w) => String(n).padStart(w, '0');
+function makeCode(field, pat, seed, grade, level) { return `${FKEYS.indexOf(field)}-${pad(Object.keys(FIELDS[field].pats).indexOf(pat), 2)}-${pad(seed, 6)}-${grade}${level}`; }
+function parseCode(code) {
+  const s = String(code).trim().replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[ー−–—]/g, '-').toUpperCase();
+  let m = s.match(/^M-?(\d{1,6})-?([1-3])([1-3])$/); if (m) return { moshi: true, seed: +m[1], grade: +m[2], level: +m[3] };
+  m = s.match(/^(\d)-?(\d{2})-?(\d{1,6})-?([1-3])([1-3])$/); if (!m) return null; const field = FKEYS[+m[1]]; if (!field) return null; const pat = Object.keys(FIELDS[field].pats)[+m[2]]; if (!pat) return null;
+  return { field, pat, seed: +m[3], grade: +m[4], level: +m[5] };
 }
-if (typeof module !== 'undefined') module.exports = { FIELDS, generate, SM, genItem, SM_LABEL };
+function generate(field, pat, seed, grade = 3, level = 2) {
+  const F = FIELDS[field]; if (pat === 'any') pat = pickAny(autoPats(field, grade, level));
+  if (seed === undefined) seed = Math.floor(Math.random() * 1e6);
+  OPT.grade = grade; OPT.level = level; seedRNG(seed);
+  let prob;
+  try { prob = retry(() => { try { return F.pats[pat][1](); } catch (e) { if (e.message === 'zero div') return null; throw e; } }); } finally { RNG = Math.random; }
+  if (level === 1 && field !== 'shomon' && prob.items.length > 2) prob.items = prob.items.slice(0, Math.max(2, Math.ceil(prob.items.length * 0.6)));
+  prob.field = field; prob.pat = pat; prob.seed = seed; prob.code = makeCode(field, pat, seed, grade, level); return prob;
+}
+// おまかせのパターン選択は再現性に関係しないので通常の乱数で行う
+const pickAny = a => a[Math.floor(Math.random() * a.length)];
+function generateAny(field, pat, grade, level) { return generate(field, pat === 'any' ? pickAny(autoPats(field, grade, level)) : pat, Math.floor(Math.random() * 1e6), grade, level); }
+// 模試セット
+const MOSHI_SLOTS = [['shomon'], ['kansuu', 'sonota'], ['zukei'], ['kakuritsu'], ['kisoku', 'sonota']];
+function generateMoshi(seed, grade, level) {
+  const r = mulberry32(seed * 7919 + 17); const pk = a => a[Math.floor(r() * a.length)]; const used = new Set(); const probs = [];
+  MOSHI_SLOTS.forEach(slot => { let field = slot.find(f => autoPats(f, grade, level).filter(k => !used.has(f + k)).length); if (!field) return; const cands = autoPats(field, grade, level).filter(k => !used.has(field + k)); const pat = pk(cands); used.add(field + pat); const sub = Math.floor(r() * 1e6); probs.push(generate(field, pat, sub, grade, level)); });
+  return probs;
+}
+if (typeof module !== 'undefined') module.exports = { FIELDS, generate, generateAny, generateMoshi, parseCode, makeCode, patsFor, autoPats, SM, genItem, SM_LABEL, OPT, SM_GRADE, PAT_META };
 
 // ---- 画面 ----
 if (typeof document !== 'undefined') (function () {
   const $ = s => document.querySelector(s);
-  const state = { field: 'shomon', pat: 'any', count: 1, probs: [], showAns: false };
-  try { const s = JSON.parse(localStorage.getItem('nyushi-gen') || '{}'); Object.assign(state, { field: s.field || state.field, pat: s.pat || 'any', count: s.count || 1 }); if (!FIELDS[state.field]) state.field = 'shomon'; } catch (e) { }
-  const save = () => { try { localStorage.setItem('nyushi-gen', JSON.stringify({ field: state.field, pat: state.pat, count: state.count })); } catch (e) { } };
+  const state = { field: 'shomon', pat: 'mix', count: 1, grade: 3, level: 2, probs: [], showAns: false, moshiCode: '' };
+  try { const s = JSON.parse(localStorage.getItem('nyushi-gen') || '{}'); ['field', 'pat', 'count', 'grade', 'level'].forEach(k => { if (s[k] !== undefined) state[k] = s[k]; }); if (!FIELDS[state.field] && state.field !== 'moshi') state.field = 'shomon'; } catch (e) { }
+  const save = () => { try { localStorage.setItem('nyushi-gen', JSON.stringify({ field: state.field, pat: state.pat, count: state.count, grade: state.grade, level: state.level })); } catch (e) { } };
   function renderFields() {
-    $('#fields').innerHTML = Object.entries(FIELDS).map(([k, F]) => `<button type="button" class="field ${k === state.field ? 'on' : ''}" data-f="${k}" aria-pressed="${k === state.field}"><span class="fn">${F.name}</span><span class="fnote">${F.note}</span></button>`).join('');
-    const F = FIELDS[state.field]; const opts = [['any', 'おまかせ（パターンをランダムに）']].concat(Object.entries(F.pats).map(([k, v]) => [k, v[0]]));
-    if (state.field === 'shomon') opts.shift();
-    if (!opts.some(o => o[0] === state.pat)) state.pat = opts[0][0];
-    $('#pat').innerHTML = opts.map(([k, l]) => `<option value="${k}" ${k === state.pat ? 'selected' : ''}>${l}</option>`).join('');
-    $('#count').value = state.count;
+    const btn = (k, name, note) => { const dis = k !== 'moshi' && !patsFor(k, state.grade).length; return `<button type="button" class="field ${k === state.field ? 'on' : ''}${k === 'moshi' ? ' moshi' : ''}" data-f="${k}" aria-pressed="${k === state.field}" ${dis ? 'disabled title="この学年ではまだ学習しない分野です"' : ''}><span class="fn">${name}</span><span class="fnote">${note}</span></button>`; };
+    $('#fields').innerHTML = Object.entries(FIELDS).map(([k, F]) => btn(k, F.name, F.note)).join('') + btn('moshi', '模試セット', '入試1回分（5題・50分）');
+    if (state.field !== 'moshi' && !patsFor(state.field, state.grade).length) state.field = 'shomon';
+    const isM = state.field === 'moshi'; $('#patrow').hidden = isM; $('#countlab').hidden = isM;
+    if (!isM) { const avail = patsFor(state.field, state.grade); const F = FIELDS[state.field]; const opts = (state.field === 'shomon' ? [] : [['any', 'おまかせ（パターンをランダムに）']]).concat(avail.map(k => [k, F.pats[k][0] + (state.field === 'shomon' ? '' : `（${LEVEL_NAME[meta(state.field, k)[1]]}）`)]));
+      if (!opts.some(o => o[0] === state.pat)) state.pat = opts[0][0]; $('#pat').innerHTML = opts.map(([k, l]) => `<option value="${k}" ${k === state.pat ? 'selected' : ''}>${l}</option>`).join(''); }
+    $('#count').value = state.count; $('#grade').value = state.grade; $('#level').value = state.level;
   }
   function daimonHtml(p, i) {
     const figOut = s => { const m = (s.match(/<svg/g) || []).length === 1 ? s.match(/<svg[\s\S]*?<\/svg>/) : null; return m ? `<div class="qfig">${m[0]}</div>` + s.replace(m[0], '') : s; };
     const qs = p.items.map((it, j) => `<li><span class="qn">(${j + 1})</span><div class="qb">${figOut((it.tag && p.field === 'shomon' ? `<span class="tag">${it.tag}</span>` : '') + it.q)}<div class="ans"><span class="al">答</span>${it.a}</div></div></li>`).join('');
-    return `<section class="daimon" data-i="${i}"><header class="dh"><span class="dn">${i + 1}</span><span class="dt">${p.title}</span><button type="button" class="regen" data-i="${i}">この大問を作り直す</button></header><div class="lead">${p.lead}</div>${p.fig ? `<div class="figwrap">${p.fig}</div>` : ''}<ol class="qs">${qs}</ol></section>`;
+    return `<section class="daimon" data-i="${i}"><header class="dh"><span class="dn">${i + 1}</span><span class="dt">${p.title}</span><span class="code" title="この番号を入れると同じ問題を出せます">No. ${p.code}</span><button type="button" class="regen" data-i="${i}">作り直す</button></header><div class="lead">${p.lead}</div>${p.fig ? `<div class="figwrap">${p.fig}</div>` : ''}<ol class="qs">${qs}</ol></section>`;
   }
   function keyHtml() {
-    return `<h2 class="kh">解答・解説</h2>` + state.probs.map((p, i) => `<div class="kblock"><div class="kt"><span class="dn sm">${i + 1}</span>${p.title}</div><ol class="kl">${p.items.map((it, j) => `<li><span class="qn">(${j + 1})</span><div><div class="ka">${it.a}</div>${it.ex ? `<div class="kx">${it.ex}</div>` : ''}</div></li>`).join('')}</ol></div>`).join('');
+    return `<h2 class="kh">解答・解説</h2>` + state.probs.map((p, i) => `<div class="kblock"><div class="kt"><span class="dn sm">${i + 1}</span>${p.title}<span class="code">No. ${p.code}</span></div><ol class="kl">${p.items.map((it, j) => `<li><span class="qn">(${j + 1})</span><div><div class="ka">${it.a}</div>${it.ex ? `<div class="kx">${it.ex}</div>` : ''}</div></li>`).join('')}</ol></div>`).join('');
   }
   function render() {
+    const isM = state.field === 'moshi';
+    $('#moshihead').innerHTML = isM && state.probs.length ? `<div class="mh"><div><b>数学 模試</b>　${GRADE_NAME[state.grade]}・${LEVEL_NAME[state.level]}</div><div>制限時間 50分　大問 ${state.probs.length}題</div><div class="code">セット番号 ${state.moshiCode}</div></div>` : '';
     $('#sheet').innerHTML = state.probs.map(daimonHtml).join('');
     $('#key').innerHTML = keyHtml();
     document.body.classList.toggle('show-ans', state.showAns);
     $('#ans').setAttribute('aria-pressed', state.showAns); $('#ans').textContent = state.showAns ? '答えをかくす' : '答えを表示';
-    const F = FIELDS[state.field]; $('#stamp').textContent = `${F.name}　${state.probs.length}題`;
+    $('#stamp').textContent = `${isM ? '模試セット' : FIELDS[state.field].name}　${GRADE_NAME[state.grade]}・${LEVEL_NAME[state.level]}`;
   }
-  function make() { state.probs = []; for (let i = 0; i < state.count; i++) state.probs.push(generate(state.field, state.pat)); render(); }
-  $('#fields').addEventListener('click', e => { const b = e.target.closest('.field'); if (!b) return; state.field = b.dataset.f; state.pat = state.field === 'shomon' ? 'mix' : 'any'; renderFields(); save(); make(); });
+  function make() {
+    if (state.field === 'moshi') { const seed = Math.floor(Math.random() * 1e6); state.probs = generateMoshi(seed, state.grade, state.level); state.moshiCode = `M-${pad(seed, 6)}-${state.grade}${state.level}`; }
+    else { state.probs = []; for (let i = 0; i < state.count; i++) state.probs.push(generateAny(state.field, state.pat, state.grade, state.level)); }
+    $('#codemsg').textContent = ''; render();
+  }
+  $('#fields').addEventListener('click', e => { const b = e.target.closest('.field'); if (!b || b.disabled) return; state.field = b.dataset.f; state.pat = state.field === 'shomon' ? 'mix' : 'any'; renderFields(); save(); make(); });
   $('#pat').addEventListener('change', e => { state.pat = e.target.value; save(); make(); });
   $('#count').addEventListener('change', e => { state.count = Math.max(1, Math.min(5, +e.target.value || 1)); save(); make(); });
+  $('#grade').addEventListener('change', e => { state.grade = +e.target.value; renderFields(); save(); make(); });
+  $('#level').addEventListener('change', e => { state.level = +e.target.value; renderFields(); save(); make(); });
   $('#go').addEventListener('click', make);
   $('#ans').addEventListener('click', () => { state.showAns = !state.showAns; render(); });
-  $('#sheet').addEventListener('click', e => { const b = e.target.closest('.regen'); if (!b) return; const i = +b.dataset.i; const p = state.probs[i]; state.probs[i] = generate(p.field, state.pat === 'any' ? 'any' : p.pat); render(); });
+  $('#codeform').addEventListener('submit', e => {
+    e.preventDefault(); const c = parseCode($('#code').value); if (!c) { $('#codemsg').textContent = '番号の形が正しくありません。例：1-00-123456-32 または M-123456-32'; return; }
+    state.grade = c.grade; state.level = c.level;
+    if (c.moshi) { state.field = 'moshi'; state.probs = generateMoshi(c.seed, c.grade, c.level); state.moshiCode = `M-${pad(c.seed, 6)}-${c.grade}${c.level}`; }
+    else { state.field = c.field; state.pat = c.pat; state.probs = [generate(c.field, c.pat, c.seed, c.grade, c.level)]; }
+    renderFields(); save(); render(); $('#codemsg').textContent = '番号の問題を出しました。';
+  });
+  $('#sheet').addEventListener('click', e => { const b = e.target.closest('.regen'); if (!b) return; const i = +b.dataset.i; const p = state.probs[i]; const keepPat = state.field === 'moshi' || state.pat !== 'any'; state.probs[i] = generateAny(p.field, keepPat ? p.pat : 'any', state.grade, state.level); render(); });
   if (window.self === window.top) { $('#print').hidden = false; $('#print').addEventListener('click', () => window.print()); }
   renderFields(); make();
 })();
