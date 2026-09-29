@@ -1,0 +1,1977 @@
+<title>入試数学 大問ジェネレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=BIZ+UDPMincho:wght@400;700&family=Zen+Kaku+Gothic+New:wght@700;900&display=swap">
+<style>
+/* 答案用紙と赤ペン：問題は紙面、答えは採点の赤で */
+:root {
+  --bg: #e9ebe6; --paper: #fdfdfb; --ink: #1d2124; --sub: #5b6361; --line: #c9ceca; --grid: #dfe3df;
+  --accent: #23465e; --red: #c8352b; --shade: #b9c0bc; --chip: #f3f5f2;
+  --mincho: "BIZ UDPMincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --gothic: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --display: "Zen Kaku Gothic New", "BIZ UDPGothic", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #151918; --paper: #1f2422; --ink: #e5e8e3; --sub: #9aa39f; --line: #3a423f; --grid: #2d3431; --accent: #9cc3dd; --red: #ff8a7a; --shade: #4d5753; --chip: #262c2a; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #151918; --paper: #1f2422; --ink: #e5e8e3; --sub: #9aa39f; --line: #3a423f; --grid: #2d3431; --accent: #9cc3dd; --red: #ff8a7a; --shade: #4d5753; --chip: #262c2a; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--gothic); font-size: 15px; line-height: 1.7; }
+.wrap { max-width: 900px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 60px; }
+.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; margin-bottom: 14px; }
+h1 { font-family: var(--display); font-weight: 900; font-size: 1.55rem; letter-spacing: .02em; margin: 0; color: var(--accent); text-wrap: balance; }
+h1 small { font-family: var(--gothic); font-weight: 400; font-size: .8rem; color: var(--sub); letter-spacing: .08em; margin-left: .5em; }
+.stamp { font-size: .8rem; color: var(--sub); border: 1px solid var(--line); padding: 1px 10px; border-radius: 3px; font-variant-numeric: tabular-nums; }
+.panel-ctl { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: grid; gap: 12px; }
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 8px; }
+.field { font: inherit; text-align: left; background: var(--chip); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; padding: 8px 10px; cursor: pointer; display: grid; gap: 2px; }
+.field:hover { border-color: var(--accent); }
+.field.on { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+.field .fn { font-weight: 700; font-size: .95rem; }
+.field .fnote { font-size: .72rem; opacity: .8; line-height: 1.35; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.row label { font-size: .82rem; color: var(--sub); display: flex; white-space: nowrap; min-width: 0; gap: 6px; align-items: center; }
+select, input[type=number] { font: inherit; font-size: .9rem; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; max-width: 100%; }
+select { min-width: 0; max-width: 62vw; white-space: normal; }
+input[type=number] { width: 4.2em; }
+.btn { font: inherit; font-weight: 700; border-radius: 4px; padding: 7px 16px; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: var(--paper); }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn.redb { border-color: var(--red); color: var(--red); background: transparent; }
+.btn:focus-visible, .field:focus-visible, select:focus-visible, .regen:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.sheet { margin-top: 18px; display: grid; gap: 18px; }
+.daimon { background: var(--paper); border: 1px solid var(--line); padding: 22px 24px 18px; font-family: var(--mincho); font-size: 15.5px; line-height: 1.9; min-width: 0; }
+.dh { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-family: var(--gothic); }
+.dn { display: inline-grid; place-items: center; min-width: 28px; height: 28px; border: 2px solid var(--ink); font-weight: 700; font-size: 1.05rem; font-family: var(--gothic); }
+.dn.sm { min-width: 22px; height: 22px; font-size: .85rem; border-width: 1.5px; margin-right: 8px; }
+.dt { font-size: .78rem; color: var(--sub); letter-spacing: .05em; }
+.regen { margin-left: auto; font: inherit; font-size: .75rem; color: var(--accent); background: none; border: 1px solid var(--line); border-radius: 3px; padding: 2px 8px; cursor: pointer; }
+.lead { margin: 4px 0 10px; }
+.figwrap { display: flex; justify-content: center; margin: 8px 0 12px; overflow-x: auto; }
+.qs { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.qs > li { display: grid; grid-template-columns: 2.4em 1fr; }
+.qn { font-family: var(--gothic); font-size: .9rem; padding-top: .15em; }
+.qb { min-width: 0; display: flow-root; }
+.qfig { float: right; margin: 0 0 6px 14px; max-width: 45%; }
+.qfig svg { width: 100%; }
+.tag { display: inline-block; font-family: var(--gothic); font-size: .68rem; color: var(--sub); border: 1px solid var(--line); border-radius: 2px; padding: 0 5px; margin-right: 6px; vertical-align: .15em; line-height: 1.6; }
+.calc { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px 24px; margin-top: 6px; }
+.ans { display: none; color: var(--red); font-family: var(--gothic); margin-top: 4px; padding-left: .6em; border-left: 2px solid var(--red); }
+.show-ans .ans { display: block; }
+.al { font-size: .72rem; border: 1px solid var(--red); border-radius: 2px; padding: 0 4px; margin-right: 8px; vertical-align: .1em; }
+/* 数式 */
+.fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 .12em; line-height: 1.25; font-size: .95em; }
+.fr .nu { border-bottom: 1px solid currentColor; padding: 0 .2em; }
+.fr .de { padding: 0 .2em; }
+.rt { white-space: nowrap; }
+.rc { border-top: 1px solid currentColor; padding: 0 .1em; margin-left: .05em; }
+i { font-family: "Times New Roman", "BIZ UDPMincho", serif; font-style: italic; }
+sup { font-size: .7em; }
+.sys { display: inline-flex; flex-direction: column; border-left: 2px solid currentColor; border-radius: 6px 0 0 6px; padding-left: .5em; margin: 0 .3em; vertical-align: middle; line-height: 1.5; }
+.choices { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 2px 18px; margin: 6px 0 0 .5em; }
+.graphs { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px 10px; margin-top: 6px; }
+.graphs b { font-family: var(--gothic); }
+.bx { display: inline-block; border: 1px solid var(--ink); min-width: 3em; text-align: center; padding: 0 .3em; line-height: 1.4; font-family: var(--gothic); font-size: .9em; }
+.bx.sm { min-width: 2.4em; }
+.panel { border: 1px dashed var(--sub); padding: 6px 12px; margin: 8px 0; }
+.ptitle { font-weight: 700; }
+.proof { border: 1px dashed var(--sub); padding: 8px 14px; margin: 8px 0; line-height: 2.1; }
+.opts { border: 1px solid var(--ink); padding: 4px 12px; display: flex; flex-wrap: wrap; gap: 4px 20px; position: relative; margin-top: 14px; }
+.optt { position: absolute; top: -.8em; left: 8px; background: var(--paper); padding: 0 6px; font-size: .8rem; line-height: 1.4; }
+.data { border: 1px solid var(--ink); padding: 4px 12px; margin: 6px 0; font-variant-numeric: tabular-nums; }
+.data .unit { display: block; text-align: right; font-size: .8rem; }
+.cards { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; justify-content: center; }
+.card { border: 1.5px solid var(--ink); border-radius: 4px; min-width: 2.4em; height: 3em; display: inline-grid; place-items: center; font-family: var(--gothic); font-size: 1.1rem; }
+.bag { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; border: 1.5px solid var(--ink); border-radius: 40% 40% 45% 45%; padding: 22px 26px; max-width: 230px; margin: 0 auto; }
+.ball { width: 2.2em; height: 2.2em; border-radius: 50%; border: 1.5px solid var(--ink); display: inline-grid; place-items: center; font-size: .8rem; font-family: var(--gothic); }
+.ball.red { background: color-mix(in srgb, var(--red) 25%, var(--paper)); }
+.ball.blue { background: color-mix(in srgb, var(--accent) 25%, var(--paper)); }
+.tb { border-collapse: collapse; font-variant-numeric: tabular-nums; margin: 4px auto; }
+.tb th, .tb td { border: 1px solid var(--ink); padding: 2px 12px; text-align: center; font-weight: 400; }
+.tb th { background: var(--chip); }
+.tb .cls { white-space: nowrap; }
+.cal td.hit { font-weight: 700; }
+.fig .cons { stroke: var(--red); stroke-width: .9; }
+.ansfig { margin-top: 6px; } .ansfig svg { width: 320px; height: auto; }
+.dialog { border: 1px solid var(--ink); padding: 8px 12px; margin: 8px 0; display: grid; gap: 4px; }
+.dl { display: grid; grid-template-columns: 5.2em 1fr; gap: 6px; } .who { font-family: var(--gothic); font-size: .88rem; } .say { min-width: 0; }
+.bagl { align-self: center; font-family: var(--gothic); font-size: .85rem; margin: 0 4px 0 12px; }
+.coin { width: 3.4em; height: 3.4em; border-radius: 50%; border: 1.5px solid var(--ink); display: inline-grid; place-items: center; font-family: var(--gothic); font-size: .85rem; }
+.numtab td, .numtab th { padding: 1px 8px; font-size: .9rem; }
+.note { font-size: .78rem; color: var(--sub); text-align: center; }
+.sq4 { display: inline-grid; grid-template-columns: 1.6em 1.6em; border: 1.5px solid var(--ink); vertical-align: middle; line-height: 1.5; text-align: center; font-size: .9em; }
+.fig { color: var(--ink); overflow: visible; }
+.fig line, .fig polyline, .fig polygon, .fig path, .fig circle, .fig rect { stroke: var(--ink); stroke-width: 1.3; }
+.fig text { fill: var(--ink); font-family: var(--mincho); font-size: 13px; stroke: none; }
+.fig text.it { font-style: italic; font-family: "Times New Roman", serif; }
+.fig .grid { stroke: var(--grid); stroke-width: .8; }
+.fig .axis { stroke-width: 1; }
+.fig .thin { stroke-width: .9; }
+.fig .curve { stroke-width: 1.7; }
+.fig .dot { fill: var(--ink); stroke: none; }
+.key { margin-top: 24px; background: var(--paper); border: 1px solid var(--line); padding: 18px 22px; display: none; }
+.show-ans .key { display: block; }
+.kh { font-family: var(--display); font-size: 1.1rem; color: var(--red); margin: 0 0 10px; }
+.kblock { padding-block: 8px; border-top: 1px solid var(--line); }
+.kt { font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; }
+.kl { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.kl li { display: grid; grid-template-columns: 2.4em 1fr; }
+.ka { color: var(--red); }
+.kx { font-size: .85rem; color: var(--sub); }
+.foot { margin-top: 26px; font-size: .78rem; color: var(--sub); }
+@media (max-width: 560px) { .daimon { padding: 16px 14px; font-size: 15px; } .qs > li, .kl li { grid-template-columns: 2em 1fr; } .choices { grid-template-columns: 1fr 1fr; } }
+@media print {
+  :root { --bg: #fff; --paper: #fff; --ink: #000; --red: #c00; }
+  .no-print, .regen, .top .stamp { display: none !important; }
+  body { background: #fff; }
+  .wrap { max-width: none; padding: 0; }
+  .daimon { border: none; padding: 0 0 12px; break-inside: auto; }
+  .daimon + .daimon { break-before: page; }
+  .key { break-before: page; border: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<div class="wrap">
+  <div class="top"><h1>入試数学 大問ジェネレーター<small>分野を選ぶと，入試形式の大問を何度でも作ります</small></h1><span class="stamp" id="stamp"></span></div>
+  <div class="panel-ctl no-print">
+    <div class="fields" id="fields" role="group" aria-label="分野"></div>
+    <div class="row">
+      <label for="pat">パターン <select id="pat"></select></label>
+      <label for="count">大問の数 <input type="number" id="count" min="1" max="5" value="1"></label>
+      <button type="button" class="btn" id="go">問題をつくる</button>
+      <button type="button" class="btn redb" id="ans" aria-pressed="false">答えを表示</button>
+      <button type="button" class="btn ghost" id="print" hidden>印刷</button>
+    </div>
+  </div>
+  <div class="sheet" id="sheet"></div>
+  <div class="key" id="key"></div>
+  <p class="foot no-print">数値・図形・問われ方は毎回ランダムに変わります。答えを表示すると，各問の下と最後の「解答・解説」に答えが出ます。</p>
+</div>
+<script>
+// ===== core: 乱数・分数・根号・式の整形・SVG =====
+const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const sample = (a, k) => shuffle(a).slice(0, k);
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a; };
+const lcm = (a, b) => a / gcd(a, b) * b;
+const RNZ = (a, b) => { let v; do v = R(a, b); while (v === 0); return v; };
+const range = (a, b) => { const r = []; for (let i = a; i <= b; i++) r.push(i); return r; };
+const isPrime = n => { if (n < 2) return false; for (let i = 2; i * i <= n; i++) if (n % i === 0) return false; return true; };
+const isSq = n => n >= 0 && Math.round(Math.sqrt(n)) ** 2 === n;
+function retry(fn, tries = 400) { for (let i = 0; i < tries; i++) { const r = fn(); if (r) return r; } throw new Error('生成に失敗しました'); }
+
+const KANA = ['ア', 'イ', 'ウ', 'エ', 'オ', 'カ', 'キ', 'ク'];
+const MARU = ['①', '②', '③', '④', '⑤', '⑥'];
+const MINUS = '−';
+
+// 分数クラス
+class Q {
+  constructor(n, d = 1) {
+    if (d === 0) throw new Error('zero div');
+    if (d < 0) { n = -n; d = -d; }
+    const g = gcd(n, d) || 1; this.n = n / g; this.d = d / g;
+  }
+  static of(x) { return x instanceof Q ? x : new Q(x, 1); }
+  add(o) { o = Q.of(o); return new Q(this.n * o.d + o.n * this.d, this.d * o.d); }
+  sub(o) { o = Q.of(o); return new Q(this.n * o.d - o.n * this.d, this.d * o.d); }
+  mul(o) { o = Q.of(o); return new Q(this.n * o.n, this.d * o.d); }
+  div(o) { o = Q.of(o); return new Q(this.n * o.d, this.d * o.n); }
+  neg() { return new Q(-this.n, this.d); }
+  abs() { return new Q(Math.abs(this.n), this.d); }
+  get v() { return this.n / this.d; }
+  isInt() { return this.d === 1; }
+  eq(o) { o = Q.of(o); return this.n === o.n && this.d === o.d; }
+  sign() { return Math.sign(this.n); }
+  html() { return qh(this); }
+}
+const q = (n, d = 1) => new Q(n, d);
+
+// 表示
+const num = n => (n < 0 ? MINUS + Math.abs(n) : '' + n);
+const pnum = n => (n < 0 ? '(' + MINUS + Math.abs(n) + ')' : '' + n); // 負なら括弧
+const frac = (a, b) => `<span class="fr"><span class="nu">${a}</span><span class="de">${b}</span></span>`;
+function qh(x) { x = Q.of(x); if (x.d === 1) return num(x.n); return (x.n < 0 ? MINUS : '') + frac(Math.abs(x.n), x.d); }
+const qp = x => { x = Q.of(x); return x.sign() < 0 ? '(' + qh(x) + ')' : qh(x); };
+const V = s => `<i>${s}</i>`;
+const sup = (b, e) => (e === 1 ? b : `${b}<sup>${e}</sup>`);
+function mono(m) { return Object.keys(m).filter(k => m[k]).map(k => sup(V(k), m[k])).join(''); }
+const rt = x => `<span class="rt">√<span class="rc">${x}</span></span>`;
+function sqrtSimp(n) { let a = 1, b = n; for (let i = 2; i * i <= b; i++) while (b % (i * i) === 0) { b /= i * i; a *= i; } return [a, b]; }
+// a√b (a: Q or int)
+function rootH(a, b) { a = Q.of(a); if (b === 1) return qh(a); if (a.eq(1)) return rt(b); if (a.eq(-1)) return MINUS + rt(b); if (a.isInt()) return num(a.n) + rt(b); return (a.n < 0 ? MINUS : '') + frac((Math.abs(a.n) === 1 ? '' : Math.abs(a.n)) + rt(b), a.d); }
+// √n を簡約表示
+const sqrtH = n => { const [a, b] = sqrtSimp(n); return rootH(a, b); };
+const sqrtHq = x => { x = Q.of(x); const [a1, b1] = sqrtSimp(x.n * x.d); return rootH(q(a1, x.d), b1); }; // √(n/d)
+
+// 多項式  terms: [[coef(Q|int), varHtml]]  varHtml '' は定数
+function poly(terms, opt = {}) {
+  let s = '';
+  terms = terms.map(([c, v]) => [Q.of(c), v]).filter(([c]) => c.n !== 0);
+  if (!terms.length) return '0';
+  terms.forEach(([c, v], i) => {
+    const neg = c.n < 0; const a = c.abs();
+    let body;
+    if (v === '') body = qh(a);
+    else if (a.eq(1)) body = v;
+    else if (a.isInt()) body = a.n + v;
+    else body = opt.fracWhole ? frac(a.n === 1 ? v : a.n + v, a.d) : frac(a.n, a.d) + v;
+    if (i === 0) s += (neg ? MINUS : '') + body;
+    else s += (neg ? ' ' + MINUS + ' ' : ' + ') + body;
+  });
+  return s;
+}
+const X = V('x'), Y = V('y'), A_ = V('a'), B_ = V('b'), N_ = V('n');
+const X2 = sup(V('x'), 2);
+// y = mx + b
+const lineEq = (m, b, xv = X) => `${Y} = ${poly([[m, xv], [b, '']])}`;
+const pt = (x, y) => `(${qh(x)}, ${qh(y)})`;
+const ptN = (name, x, y) => `${name}${pt(x, y)}`;
+function fmtDec(x, d = 2) { const r = Math.round(x * 10 ** d) / 10 ** d; let s = r.toFixed(d); if (s.includes('.')) s = s.replace(/0+$/, '').replace(/\.$/, ''); return s.replace('-', MINUS); }
+const fixDec = (x, d = 2) => (Math.round(x * 10 ** d) / 10 ** d).toFixed(d);
+
+// 選択肢
+function choices(list, cols) {
+  cols = cols || (list.every(t => String(t).replace(/<[^>]+>/g, '').length < 14) ? Math.min(list.length, 4) : 1);
+  return `<div class="choices" style="--cols:${cols}">` + list.map((t, i) => `<div class="ch"><b>${KANA[i]}</b>　${t}</div>`).join('') + '</div>';
+}
+const box = s => `<span class="bx">${s}</span>`;           // 解答欄の枠
+const blank = (s = '') => `<span class="blank">${s}</span>`;
+const panel = (title, body) => `<div class="panel">${title ? `<div class="ptitle">${title}</div>` : ''}${body}</div>`;
+const table = (rows, cls = '') => `<table class="tb ${cls}">` + rows.map((r, i) => '<tr>' + r.map(c => (i === 0 ? `<th>${c}</th>` : `<td>${c}</td>`)).join('') + '</tr>').join('') + '</table>';
+function tableH(head, rows, cls = '') { return `<table class="tb ${cls}"><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map((c, j) => (j === 0 ? `<th class="rh">${c}</th>` : `<td>${c}</td>`)).join('')}</tr>`).join('')}</table>`; }
+
+// 確率: 列挙
+function prob(space, pred) { let c = 0; space.forEach(e => { if (pred(e)) c++; }); return q(c, space.length); }
+const dice2 = () => { const s = []; for (let a = 1; a <= 6; a++) for (let b = 1; b <= 6; b++) s.push([a, b]); return s; };
+const pairs = arr => { const s = []; for (let i = 0; i < arr.length; i++) for (let j = i + 1; j < arr.length; j++) s.push([arr[i], arr[j]]); return s; };
+const ordered = arr => { const s = []; for (let i = 0; i < arr.length; i++) for (let j = 0; j < arr.length; j++) if (i !== j) s.push([arr[i], arr[j]]); return s; };
+const withRep = arr => { const s = []; for (const a of arr) for (const b of arr) s.push([a, b]); return s; };
+
+// 統計: 中学の四分位数（前半・後半の中央値）
+const median = s => { const n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+function five(data) { const s = data.slice().sort((a, b) => a - b); const n = s.length; return [s[0], median(s.slice(0, Math.floor(n / 2))), median(s), median(s.slice(Math.ceil(n / 2))), s[n - 1]]; }
+
+// ===== SVG =====
+class Svg {
+  constructor(w, h, cls = '') { this.w = w; this.h = h; this.cls = cls; this.el = []; }
+  add(s) { this.el.push(s); return this; }
+  line(x1, y1, x2, y2, o = {}) { return this.add(`<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" ${st(o)}/>`); }
+  poly(pts, o = {}) { return this.add(`<polygon points="${pts.map(p => f(p[0]) + ',' + f(p[1])).join(' ')}" ${st(Object.assign({ fill: 'none' }, o))}/>`); }
+  pline(pts, o = {}) { return this.add(`<polyline points="${pts.map(p => f(p[0]) + ',' + f(p[1])).join(' ')}" ${st(Object.assign({ fill: 'none' }, o))}/>`); }
+  circle(x, y, r, o = {}) { return this.add(`<circle cx="${f(x)}" cy="${f(y)}" r="${f(r)}" ${st(Object.assign({ fill: 'none' }, o))}/>`); }
+  dot(x, y, r = 2.6) { return this.add(`<circle cx="${f(x)}" cy="${f(y)}" r="${r}" class="dot"/>`); }
+  path(d, o = {}) { return this.add(`<path d="${d}" ${st(Object.assign({ fill: 'none' }, o))}/>`); }
+  text(x, y, s, o = {}) { const a = o.anchor || 'middle'; const sz = o.size ? `font-size="${o.size}"` : ''; const cl = o.italic ? 'class="it"' : ''; return this.add(`<text x="${f(x)}" y="${f(y)}" text-anchor="${a}" dominant-baseline="middle" ${sz} ${cl}>${s}</text>`); }
+  rect(x, y, w, h, o = {}) { return this.add(`<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" ${st(Object.assign({ fill: 'none' }, o))}/>`); }
+  // 点のラベル: 中心から外向きに
+  label(p, s, center, d = 13, o = {}) { let dx = p[0] - center[0], dy = p[1] - center[1]; const L = Math.hypot(dx, dy) || 1; return this.text(p[0] + dx / L * d, p[1] + dy / L * d, s, o); }
+  // 直角マーク
+  rightMark(p, a, b, s = 9) { const u = unit(p, a), v = unit(p, b); return this.pline([[p[0] + u[0] * s, p[1] + u[1] * s], [p[0] + u[0] * s + v[0] * s, p[1] + u[1] * s + v[1] * s], [p[0] + v[0] * s, p[1] + v[1] * s]]); }
+  // 角の弧
+  arc(p, a, b, r = 16, o = {}) { const t1 = Math.atan2(a[1] - p[1], a[0] - p[0]), t2 = Math.atan2(b[1] - p[1], b[0] - p[0]); let d = t2 - t1; while (d <= -Math.PI) d += 2 * Math.PI; while (d > Math.PI) d -= 2 * Math.PI; const sw = d > 0 ? 1 : 0; const e = [p[0] + r * Math.cos(t2), p[1] + r * Math.sin(t2)], s = [p[0] + r * Math.cos(t1), p[1] + r * Math.sin(t1)]; return this.path(`M${f(s[0])},${f(s[1])} A${r},${r} 0 0 ${sw} ${f(e[0])},${f(e[1])}`, o); }
+  arcLabel(p, a, b, r, s, it = false) { const t1 = Math.atan2(a[1] - p[1], a[0] - p[0]); let t2 = Math.atan2(b[1] - p[1], b[0] - p[0]); let d = t2 - t1; while (d <= -Math.PI) d += 2 * Math.PI; while (d > Math.PI) d -= 2 * Math.PI; const t = t1 + d / 2; return this.text(p[0] + r * Math.cos(t), p[1] + r * Math.sin(t), s, { size: it ? 14 : 12, italic: it }); }
+  toString() { return `<svg class="fig ${this.cls}" viewBox="0 0 ${this.w} ${this.h}" width="${this.w}" style="max-width:100%;height:auto">${this.el.join('')}</svg>`; }
+}
+function f(x) { return Math.round(x * 10) / 10; }
+function st(o) { let s = ''; if (o.dash) s += ` stroke-dasharray="${o.dash === true ? '4 3' : o.dash}"`; if (o.fill) s += ` fill="${o.fill}"`; if (o.w) s += ` stroke-width="${o.w}"`; if (o.cls) s += ` class="${o.cls}"`; if (o.stroke) s += ` stroke="${o.stroke}"`; return s; }
+function unit(p, a) { const dx = a[0] - p[0], dy = a[1] - p[1], L = Math.hypot(dx, dy) || 1; return [dx / L, dy / L]; }
+const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+const cen = pts => [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length];
+function interLines(p1, p2, p3, p4) { const d = (p1[0] - p2[0]) * (p3[1] - p4[1]) - (p1[1] - p2[1]) * (p3[0] - p4[0]); const a = p1[0] * p2[1] - p1[1] * p2[0], b = p3[0] * p4[1] - p3[1] * p4[0]; return [(a * (p3[0] - p4[0]) - (p1[0] - p2[0]) * b) / d, (a * (p3[1] - p4[1]) - (p1[1] - p2[1]) * b) / d]; }
+// 図の上下余白を自動で詰める(ラベル含む範囲)
+function fitPts(pts, W, H, pad = 28) { const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]); const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys); const s = Math.min((W - 2 * pad) / ((x1 - x0) || 1), (H - 2 * pad) / ((y1 - y0) || 1)); const ox = (W - (x1 - x0) * s) / 2, oy = (H - (y1 - y0) * s) / 2; return p => [ox + (p[0] - x0) * s, H - (oy + (p[1] - y0) * s)]; }
+
+// 座標平面の図
+class Plane {
+  constructor(xmin, xmax, ymin, ymax, W = 300, opt = {}) {
+    this.xmin = xmin; this.xmax = xmax; this.ymin = ymin; this.ymax = ymax;
+    this.sx = W / (xmax - xmin); this.sy = opt.sy || this.sx; this.W = W; this.H = (ymax - ymin) * this.sy;
+    this.s = new Svg(W, this.H + 4, 'plane');
+    if (opt.grid) { for (let x = Math.ceil(xmin); x <= xmax; x += opt.grid) this.s.line(this.X(x), 0, this.X(x), this.H, { cls: 'grid' }); for (let y = Math.ceil(ymin); y <= ymax; y += (opt.gridy || opt.grid)) this.s.line(0, this.Y(y), W, this.Y(y), { cls: 'grid' }); }
+    if (!opt.noAxis) {
+      this.s.line(0, this.Y(0), W - 2, this.Y(0), { cls: 'axis' }); this.s.line(this.X(0), this.H, this.X(0), 2, { cls: 'axis' });
+      this.s.text(W - 8, this.Y(0) + 12, 'x', { italic: true }); this.s.text(this.X(0) + 10, 10, 'y', { italic: true }); this.s.text(this.X(0) - 9, this.Y(0) + 11, 'O');
+    }
+  }
+  X(x) { return (x - this.xmin) * this.sx; }
+  Y(y) { return (this.ymax - y) * this.sy; }
+  P(p) { return [this.X(p[0]), this.Y(p[1])]; }
+  fn(g, x0 = this.xmin, x1 = this.xmax, o = {}) { const pts = []; const n = 160; for (let i = 0; i <= n; i++) { const x = x0 + (x1 - x0) * i / n; const y = g(x); if (y >= this.ymin - 1 && y <= this.ymax + 1) pts.push([this.X(x), this.Y(Math.max(this.ymin - 0.5, Math.min(this.ymax + 0.5, y)))]); else if (pts.length) { this.s.pline(pts, o); pts.length = 0; } } if (pts.length > 1) this.s.pline(pts, Object.assign({ cls: 'curve' }, o)); return this; }
+  seg(a, b, o = {}) { this.s.line(this.X(a[0]), this.Y(a[1]), this.X(b[0]), this.Y(b[1]), o); return this; }
+  // 直線 y=mx+b を枠内で描く
+  line(m, b, o = {}) { const pts = []; const cand = [[this.xmin, m * this.xmin + b], [this.xmax, m * this.xmax + b]]; if (m !== 0) { cand.push([(this.ymin - b) / m, this.ymin], [(this.ymax - b) / m, this.ymax]); } cand.forEach(p => { if (p[0] >= this.xmin - 1e-9 && p[0] <= this.xmax + 1e-9 && p[1] >= this.ymin - 1e-9 && p[1] <= this.ymax + 1e-9) pts.push(p); }); pts.sort((a, c) => a[0] - c[0]); if (pts.length >= 2) this.seg(pts[0], pts[pts.length - 1], o); return this; }
+  pt(p, name, dir = [1, -1]) { this.s.dot(this.X(p[0]), this.Y(p[1])); if (name) this.s.text(this.X(p[0]) + dir[0] * 11, this.Y(p[1]) - dir[1] * 11, name); return this; }
+  lab(p, s, dx = 0, dy = 0, o = {}) { this.s.text(this.X(p[0]) + dx, this.Y(p[1]) + dy, s, o); return this; }
+  // グラフの右上端付近にラベル
+  tag(g, text, o = {}) { let best = null; for (let i = 0; i <= 200; i++) { const x = this.xmax - (this.xmax - this.xmin) * i / 200; const y = g(x); if (y <= this.ymax - (this.ymax - this.ymin) * 0.04 && y >= this.ymin + (this.ymax - this.ymin) * 0.08) { best = [x, y]; break; } } if (best) { const up = g(best[0] - 0.01) < best[1]; this.s.text(this.X(best[0]) - (o.dx ?? 22), this.Y(best[1]) + (o.dy ?? (up ? 2 : -10)), text, { size: 13, italic: true, anchor: 'end' }); } return this; }
+  toString() { return this.s.toString(); }
+}
+
+// ===== 小問集合 =====
+const SM = {};
+// --- 計算 ---
+SM.seifu = () => {
+  const t = R(0, 3);
+  if (t === 0) { const a = R(-9, 15), b = RNZ(-9, -1), c = R(2, 6); return { q: `${num(a)} + (${num(b)}) × ${c}`, a: num(a + b * c) }; }
+  if (t === 1) { const c = R(2, 6), k = RNZ(-6, 6), a = R(-8, 12); return { q: `${num(a)} ${k * c < 0 ? MINUS : '+'} ${Math.abs(k * c)} ÷ ${c}`, a: num(a + k) }; }
+  if (t === 2) { const b = R(2, 5), bb = b * b, d = R(2, 5), m = d * R(1, 6); return { q: `(${MINUS}${b})<sup>2</sup> ${MINUS} ${m} ÷ ${d}`, a: num(bb - m / d) }; }
+  const a = R(2, 9), b = RNZ(-8, 8); const c = R(1, 7); return { q: `${a} × (${num(b)}) ${MINUS} ${c}`, a: num(a * b - c) };
+};
+SM.bunshiki = () => {
+  const L = pick([['a', 'b'], ['x', 'y']]); const [u, w] = L;
+  const k = R(2, 5), p = RNZ(-6, 7), qq = RNZ(-6, 7), r = RNZ(-5, 6), s = RNZ(-5, 6);
+  const cu = k * p - r, cw = k * qq - s; if (cu === 0 || cw === 0) return null;
+  return { q: `${k}(${poly([[p, V(u)], [qq, V(w)]])}) ${MINUS} (${poly([[r, V(u)], [s, V(w)]])})`, a: poly([[cu, V(u)], [cw, V(w)]]) };
+};
+SM.bunsuShiki = () => {
+  const d1 = pick([2, 3, 4]), d2 = pick([3, 4, 5, 6].filter(v => v !== d1)); const L = lcm(d1, d2);
+  const a1 = RNZ(-4, 5), b1 = RNZ(-4, 4), a2 = RNZ(-4, 5), b2 = RNZ(-4, 4);
+  const cx = a1 * (L / d1) - a2 * (L / d2), cy = b1 * (L / d1) - b2 * (L / d2); if (!cx || !cy) return null;
+  const g = gcd(gcd(cx, cy), L);
+  const ans = frac(poly([[cx / g, X], [cy / g, Y]]).replace(/^−/, MINUS), L / g);
+  return { q: `${frac(poly([[a1, X], [b1, Y]]), d1)} ${MINUS} ${frac(poly([[a2, X], [b2, Y]]), d2)}`, a: L / g === 1 ? poly([[cx, X], [cy, Y]]) : ans };
+};
+SM.tankou = () => {
+  const [u, w] = pick([['a', 'b'], ['x', 'y']]);
+  const c2 = R(2, 6), c3 = RNZ(-9, 9); const c1 = c2 * R(1, 4) * pick([1, -1]);
+  const res = q(c1 * c3, c2); if (!res.isInt()) return null;
+  return { q: `${c1 === 1 ? '' : num(c1)}${mono({ [u]: 2, [w]: 1 })} ÷ ${c2}${mono({ [u]: 1, [w]: 1 })} × (${poly([[c3, V(u)]])})`, a: poly([[res, mono({ [u]: 2 })]]) };
+};
+SM.heihou = () => {
+  const t = R(0, 2); const b = pick([2, 3, 5, 6, 7]);
+  if (t === 0) { const m = R(2, 5), k = R(1, 6) * pick([1, -1]); const c = Math.abs(k) * b; const s = k > 0 ? '+' : MINUS;
+    return { q: `${rt(m * m * b)} ${s} ${frac(c, rt(b))}`, a: rootH(m + k, b), ex: `${rootH(m, b)} ${s} ${rootH(Math.abs(k), b)}` }; }
+  if (t === 1) { const m = R(2, 5), n = R(1, 4); if (m === n) return null; return { q: `${rt(m * m * b)} ${MINUS} ${rt(n * n * b)}`, a: rootH(m - n, b) }; }
+  // (√p + m√q)(√p + n√q)
+  const [p, r] = sample([2, 3, 5, 6, 7], 2); const m = RNZ(-3, 3), n = RNZ(-3, 3); if (m === n) return null;
+  const [sa, sb] = sqrtSimp(p * r); const cRoot = (m + n) * sa; const cons = p + m * n * r;
+  const term = (c, v) => (c === 1 ? rt(v) : c === -1 ? MINUS + rt(v) : num(c) + rt(v));
+  const f1 = `(${rt(p)} ${m < 0 ? MINUS : '+'} ${term(Math.abs(m), r)})`, f2 = `(${rt(p)} ${n < 0 ? MINUS : '+'} ${term(Math.abs(n), r)})`;
+  return { q: f1 + f2, a: poly([[cons, ''], [cRoot, rt(sb)]]) };
+};
+SM.tenkai = () => {
+  const t = R(0, 2);
+  if (t === 0) { const a = RNZ(-6, 6), b = RNZ(-6, 6), c = RNZ(-6, 6); const cx = a + b - 2 * c, cc = a * b - c * c; if (!cx) return null;
+    return { q: `(${poly([[1, X], [a, '']])})(${poly([[1, X], [b, '']])}) ${MINUS} (${poly([[1, X], [c, '']])})<sup>2</sup>`, a: poly([[cx, X], [cc, '']]) }; }
+  if (t === 1) { const a = RNZ(-5, 5), b = RNZ(-5, 5); // (x+a)^2 − (x+b)(x−b)
+    return { q: `(${poly([[1, X], [a, '']])})<sup>2</sup> ${MINUS} (${poly([[1, X], [b, '']])})(${poly([[1, X], [-b, '']])})`, a: poly([[2 * a, X], [a * a + b * b, '']]) }; }
+  const a = R(2, 4), b = RNZ(-5, 5); // (ax+b)^2
+  return { q: `(${poly([[a, X], [b, '']])})<sup>2</sup>`, a: poly([[a * a, X2], [2 * a * b, X], [b * b, '']]) };
+};
+SM.inbun = () => {
+  const t = R(0, 2);
+  if (t === 0) { const a = RNZ(-8, 8), b = RNZ(-8, 8); if (a === -b) return null; const fx = v => `(${poly([[1, X], [v, '']])})`;
+    return { q: poly([[1, X2], [a + b, X], [a * b, '']]) + ' を因数分解しなさい。', a: a === b ? fx(a) + '<sup>2</sup>' : fx(Math.max(a, b)) + fx(Math.min(a, b)) }; }
+  if (t === 1) { const a = R(2, 5), b = R(2, 7); if (gcd(a, b) !== 1) return null; return { q: poly([[a * a, sup(V('a'), 2)], [-b * b, sup(V('b'), 2)]]) + ' を因数分解しなさい。', a: `(${poly([[a, V('a')], [b, V('b')]])})(${poly([[a, V('a')], [-b, V('b')]])})` }; }
+  const k = R(2, 4), a = RNZ(-5, 5), b = RNZ(-5, 5); if (a === -b || a === b) return null;
+  return { q: poly([[k, sup(X, 2)], [k * (a + b), X], [k * a * b, '']]) + ' を因数分解しなさい。', a: `${k}(${poly([[1, X], [Math.max(a, b), '']])})(${poly([[1, X], [Math.min(a, b), '']])})` };
+};
+// --- 方程式 ---
+SM.renritsu = () => {
+  const x = RNZ(-5, 6), y = RNZ(-5, 6); const a = RNZ(-5, 6), b = RNZ(-5, 6), c = RNZ(-5, 6), d = RNZ(-5, 6); if (a * d - b * c === 0) return null;
+  return { q: `連立方程式 <span class="sys"><span>${poly([[a, X], [b, Y]])} = ${num(a * x + b * y)}</span><span>${poly([[c, X], [d, Y]])} = ${num(c * x + d * y)}</span></span> を解きなさい。`, a: `${X} = ${num(x)}, ${Y} = ${num(y)}` };
+};
+function quadSol(A, B, C) { // Ax²+Bx+C=0 の解表示
+  const D = B * B - 4 * A * C; if (D < 0) return null;
+  if (isSq(D)) { const s = Math.sqrt(D); const r1 = q(-B + s, 2 * A), r2 = q(-B - s, 2 * A); if (r1.eq(r2)) return { html: `${X} = ${qh(r1)}`, rat: true }; const rs = [r1, r2].sort((u, v) => u.v - v.v); return { html: `${X} = ${qh(rs[0])}, ${qh(rs[1])}`, rat: true }; }
+  const [s, t] = sqrtSimp(D); let p = -B, den = 2 * A; const g = gcd(gcd(p, s), den); p /= g; const s2 = s / g; den /= g;
+  const top = `${p === 0 ? '' : num(p) + ' '}± ${s2 === 1 ? '' : s2}${rt(t)}`;
+  return { html: `${X} = ${den === 1 ? top : frac(top, den)}`, rat: false };
+}
+SM.niji = () => {
+  const t = R(0, 2);
+  if (t === 0) { const r1 = RNZ(-8, 8), r2 = RNZ(-8, 8); const B = -(r1 + r2), C = r1 * r2; return { q: `2次方程式 ${poly([[1, X2], [B, X], [C, '']])} = 0 を解きなさい。`, a: quadSol(1, B, C).html }; }
+  if (t === 1) { const A = pick([1, 1, 2, 3]), B = R(-7, 7), C = R(-6, 6); const D = B * B - 4 * A * C; if (D <= 0 || isSq(D)) return null; return { q: `2次方程式 ${poly([[A, X2], [B, X], [C, '']])} = 0 を解きなさい。`, a: quadSol(A, B, C).html }; }
+  // x(x+a) = b(x+c) 型
+  const r1 = R(3, 10), r2 = -R(2, 9); const B = -(r1 + r2), C = r1 * r2; // x²+Bx+C=0
+  const a = R(1, 9), bb = a - B; const c = bb ? C / -bb : NaN; if (bb <= 1 || !Number.isInteger(c) || c === 0) return null;
+  return { q: `2次方程式 ${X}(${poly([[1, X], [a, '']])}) = ${bb}(${poly([[1, X], [c, '']])}) を解きなさい。`, a: quadSol(1, B, C).html };
+};
+SM.henkei = () => {
+  const [u, w] = pick([['a', 'b'], ['x', 'y']]); const a = R(2, 5), b = RNZ(-6, 6), c = RNZ(-9, 9);
+  // a·u + b·w = c を u について
+  const n = poly([[-b, V(w)], [c, '']]); return { q: `等式 ${poly([[a, V(u)], [b, V(w)]])} = ${num(c)} を ${V(u)} について解きなさい。`, a: `${V(u)} = ${frac(n, a)}` };
+};
+// --- 関数 ---
+SM.hanpirei = () => {
+  const k = RNZ(-8, 8) * R(2, 4); const divs = range(-12, 12).filter(d => d && k % d === 0); const x1 = pick(divs); let x2; do x2 = pick(divs); while (x2 === x1);
+  return { q: `${Y} は ${X} に反比例し，${X} = ${num(x1)} のとき ${Y} = ${num(k / x1)} である。${X} = ${num(x2)} のときの ${Y} の値を求めなさい。`, a: `${Y} = ${num(k / x2)}` };
+};
+SM.itiji = () => {
+  const m = RNZ(-4, 4), p = RNZ(-4, 5), qv = R(-6, 6);
+  const t = R(0, 1);
+  if (t === 0) return { q: `${Y} は ${X} の一次関数で，そのグラフが点${pt(p, qv)}を通り，傾き ${num(m)} の直線であるとき，この一次関数の式を求めなさい。`, a: lineEq(m, qv - m * p) };
+  const p2 = p + RNZ(-3, 3); const q2 = qv + m * (p2 - p);
+  return { q: `2点${pt(p, qv)}，${pt(p2, q2)}を通る直線の式を求めなさい。`, a: lineEq(m, qv - m * p) };
+};
+SM.hen_iki = () => {
+  const a = pick([q(1), q(2), q(3), q(-1), q(-2), q(1, 2), q(-1, 2), q(1, 3)]);
+  const x1 = R(-4, 1), x2 = R(1, 4); if (x1 === x2) return null;
+  const ys = [a.mul(x1 * x1), a.mul(x2 * x2)]; if (x1 < 0 && x2 > 0) ys.push(q(0));
+  const vals = ys.sort((u, v) => u.v - v.v);
+  return { q: `関数 ${Y} = ${poly([[a, X2]])} について，${X} の変域が ${num(x1)} ≦ ${X} ≦ ${num(x2)} のとき，${Y} の変域を求めなさい。`, a: `${qh(vals[0])} ≦ ${Y} ≦ ${qh(vals[vals.length - 1])}` };
+};
+SM.henka = () => {
+  const a = pick([q(1), q(2), q(3), q(-1), q(-2), q(1, 2), q(-1, 3)]); const p = R(-3, 3), r = p + R(1, 4);
+  return { q: `関数 ${Y} = ${poly([[a, X2]])} について，${X} の値が ${num(p)} から ${num(r)} まで増加するときの変化の割合を求めなさい。`, a: qh(a.mul(p + r)) };
+};
+// --- 数と式 ---
+SM.sqrtN = () => {
+  const s = R(2, 6), t = pick([2, 3, 5, 6, 7, 10, 11, 14, 15]); const k = s * s * t;
+  return { q: `${rt(k + ' ' + V('n'))} の値が自然数となるような，最も小さい自然数 ${N_} の値を求めなさい。`, a: `${N_} = ${t}` };
+};
+SM.sqrtCount = () => {
+  const lo = R(2, 4) + pick([0, 0.5]), hi = lo + R(1, 3); // lo < √a < hi
+  const a0 = Math.floor(lo * lo) + 1, a1 = Math.ceil(hi * hi) - 1; const cnt = a1 - a0 + 1;
+  return { q: `${fmtDec(lo)} &lt; ${rt(V('a'))} &lt; ${hi % 1 ? fmtDec(hi) : hi} を満たす自然数 ${A_} は何個あるか求めなさい。`, a: `${cnt} 個` };
+};
+SM.soinsu = () => { const ps = [2, 2, 3, 3, 5, 7, 11]; const k = sample(ps, R(3, 4)).sort((a, b) => a - b); const n = k.reduce((s, v) => s * v, 1); if (n > 400) return null; const cnt = {}; k.forEach(v => cnt[v] = (cnt[v] || 0) + 1); return { q: `${n} を素因数分解しなさい。`, a: Object.keys(cnt).map(Number).sort((a, b) => a - b).map(p => sup(p, cnt[p])).join(' × ') }; };
+SM.futoushiki = () => {
+  const a = R(2, 5), b = R(3, 8), tot = R(5, 12) * 100; const it = pick([['鉛筆', 'ノート', '本', '冊'], ['りんご', 'みかん', '個', '個'], ['大人', '子ども', '人', '人']]);
+  if (it[0] === '大人') { const s = R(10, 15) * 10; const x = R(3, 9), y = R(3, 9); return { q: `画用紙が ${s} 枚ある。大人 ${x} 人に ${A_} 枚ずつ，子ども ${y} 人に ${B_} 枚ずつ配ると，画用紙が余った。この数量の関係を不等式で表しなさい。`, a: `${poly([[x, A_], [y, B_]])} &lt; ${s}` }; }
+  const w = pick(['高い', '安い', '以上', '以下']); const sym = { '高い': '&gt;', '安い': '&lt;', '以上': '≧', '以下': '≦' }[w];
+  return { q: `「1${it[2]} ${X} 円の${it[0]} ${a} ${it[2]}と，1${it[3]} ${Y} 円の${it[1]} ${b} ${it[3]}の代金の合計は，${tot} 円${w === '高い' || w === '安い' ? 'より' : ''}${w}」という数量の関係を不等式で表しなさい。`, a: `${poly([[a, X], [b, Y]])} ${sym} ${tot}` };
+};
+// --- データ・確率 ---
+SM.hyouhon = () => {
+  if (R(0, 1)) { const N = R(3, 9) * 100 + pick([0, 20, 40, 60]); const n = pick([40, 50, 60, 80]); const k = R(Math.ceil(n * 0.2), Math.floor(n * 0.9)); const est = N * k / n; if (!Number.isInteger(est)) return null;
+    return { q: `A中学校の全校生徒 ${N} 人の中から無作為に抽出した ${n} 人に対してアンケートを行ったところ，ある質問に「はい」と答えた生徒は ${k} 人であった。A中学校の全校生徒のうち，「はい」と答える生徒はおよそ何人と推定されるか求めなさい。`, a: `およそ ${est} 人` }; }
+  const m = pick([20, 30, 40, 50]); const n = pick([10, 20, 30, 40, 50]); const k = R(2, Math.floor(n / 2)); const w = m * (n - k) / k; if (!Number.isInteger(w) || w < 50) return null;
+  const col = pick([['白', '黒', '碁石'], ['白', '赤', '玉'], ['白', 'オレンジ色の', '卓球の球']]);
+  return { q: `袋の中に${col[0]}い${col[2]}だけがたくさん入っている。この袋の中に，色だけが違う${col[1]}${col[2]} ${m} 個を入れてよくかき混ぜ，そこから無作為に ${n} 個を取り出したところ，${col[1]}${col[2]}が ${k} 個ふくまれていた。はじめに袋の中に入っていた${col[0]}い${col[2]}は，およそ何個と推定できるか求めなさい。`.replace('白い', '白い').replace('オレンジ色のい', 'オレンジ色の'), a: `およそ ${w} 個` };
+};
+SM.shibun = () => {
+  const n = R(10, 13); const base = R(10, 40); const data = []; for (let i = 0; i < n; i++) data.push(base + R(0, 30)); data.sort((a, b) => a - b);
+  const f = five(data); const t = pick(['四分位範囲', '第1四分位数', '第3四分位数', '範囲']);
+  const ans = { '四分位範囲': f[3] - f[1], '第1四分位数': f[1], '第3四分位数': f[3], '範囲': f[4] - f[0] }[t];
+  const ctx = pick([['反復横とびを20秒間行ったときの記録', '回'], ['通学時間を調査した記録', '分'], ['50 m 走の記録（小数点以下切り捨て）', '秒', 7]]);
+  const u = ctx[1]; const dataB = ctx[2] ? data.map(v => 6 + Math.round(v / 10)).sort((a, b) => a - b) : data; const f2 = five(dataB);
+  const ans2 = { '四分位範囲': f2[3] - f2[1], '第1四分位数': f2[1], '第3四分位数': f2[3], '範囲': f2[4] - f2[0] }[t];
+  return { q: `下のデータは，ある学級の生徒 ${n} 人について，${ctx[0]}を，小さい方から順に並べたものである。このデータの${t}を求めなさい。<div class="data">${dataB.join('　')}<span class="unit">（単位：${u}）</span></div>`, a: `${fmtDec(ans2)} ${u}` };
+};
+SM.dice = () => {
+  const t = R(0, 7); let text, pred;
+  const k = R(3, 6);
+  switch (t) {
+    case 0: text = `出る目の数の和が ${k} の倍数になる`; pred = ([a, b]) => (a + b) % k === 0; break;
+    case 1: { const k2 = pick([4, 6]); text = `出る目の数の積が ${k2} の倍数になる`; pred = ([a, b]) => (a * b) % k2 === 0; break; }
+    case 2: text = `大きいさいころの出る目の数が小さいさいころの出る目の数より大きくなる`; pred = ([a, b]) => a > b; break;
+    case 3: { const d = R(1, 3); text = `出る目の数の差が ${d} になる`; pred = ([a, b]) => Math.abs(a - b) === d; break; }
+    case 4: text = `${frac('<i>b</i>', '<i>a</i>')} の値が整数になる`; pred = ([a, b]) => b % a === 0; break;
+    case 5: text = `${V('a')} を十の位の数，${V('b')} を一の位の数としてできる2けたの自然数が素数になる`; pred = ([a, b]) => isPrime(10 * a + b); break;
+    case 6: { const k2 = pick([3, 4]); text = `${V('a')} を十の位の数，${V('b')} を一の位の数としてできる2けたの自然数が ${k2} の倍数になる`; pred = ([a, b]) => (10 * a + b) % k2 === 0; break; }
+    default: { const s = R(6, 9); text = `出る目の数の和が ${s} 以上になる`; pred = ([a, b]) => a + b >= s; }
+  }
+  const p = prob(dice2(), pred); if (p.n === 0) return null;
+  return { q: `大小2つのさいころを同時に投げるとき，大きいさいころの出た目の数を ${V('a')}，小さいさいころの出た目の数を ${V('b')} とする。${text}確率を求めなさい。ただし，さいころの目の出方は同様に確からしいものとする。`, a: qh(p) };
+};
+SM.cards = () => {
+  const cards = pick([[-1, 0, 1, 2, 3], [1, 2, 3, 4, 5], [-3, -2, -1, 1, 2, 3], [1, 2, 3, 4, 5, 6], [-2, -1, 0, 1, 2]]);
+  const t = pick(cards.some(c => c < 0) ? ['積が自然数', '積が正', '和が0以上', '和が積より大きい'] : ['和が偶数', '積が偶数', '和が素数', '積が3の倍数']);
+  const pr = { '積が自然数': ([a, b]) => a * b > 0, '積が正': ([a, b]) => a * b > 0, '和が0以上': ([a, b]) => a + b >= 0, '和が積より大きい': ([a, b]) => a + b > a * b, '和が偶数': ([a, b]) => (a + b) % 2 === 0, '積が偶数': ([a, b]) => (a * b) % 2 === 0, '和が素数': ([a, b]) => isPrime(a + b), '積が3の倍数': ([a, b]) => (a * b) % 3 === 0 }[t];
+  const txt = { '積が自然数': 'ひいた2枚のカードに書かれた数の積が自然数になる', '積が正': 'ひいた2枚のカードに書かれた数の積が正の数になる', '和が0以上': 'ひいた2枚のカードに書かれた数の和が0以上になる', '和が積より大きい': 'ひいた2枚のカードに書かれた数の和が，積より大きくなる', '和が偶数': 'ひいた2枚のカードに書かれた数の和が偶数になる', '積が偶数': 'ひいた2枚のカードに書かれた数の積が偶数になる', '和が素数': 'ひいた2枚のカードに書かれた数の和が素数になる', '積が3の倍数': 'ひいた2枚のカードに書かれた数の積が3の倍数になる' }[t];
+  const p = prob(pairs(cards), pr); if (p.n === 0 || p.eq(1)) return null;
+  return { q: `${cards.map(c => num(c)).join('，')} の数を1つずつ書いた ${cards.length} 枚のカードがある。このカードをよくきってから，同時に2枚ひくとき，${txt}確率を求めなさい。ただし，どのカードをひくことも同様に確からしいものとする。<div class="cards">${cards.map(c => `<span class="card">${num(c)}</span>`).join('')}</div>`, a: qh(p) };
+};
+// --- 図形 ---
+SM.kakudo_tayoukei = () => {
+  const t = R(0, 2);
+  if (t === 0) { const n = pick([5, 6, 8, 9, 10, 12]); return { q: `正${n}角形の1つの内角の大きさを求めなさい。`, a: `${fmtDec(180 * (n - 2) / n)}°` }; }
+  if (t === 1) { const n = pick([6, 8, 10, 12, 14]); return { q: `${n}角形において，内角の和は外角の和の何倍か求めなさい。`, a: `${(n - 2) / 2} 倍` }; }
+  const s = pick([900, 1080, 1260, 1440, 1800]); return { q: `内角の和が ${s}° である多角形は何角形か求めなさい。`, a: `${s / 180 + 2}角形` };
+};
+SM.enshuukaku = () => {
+  const t = R(0, 1);
+  const cx = 80, cy = 80, r = 60; const P = th => [cx + r * Math.cos(th * Math.PI / 180), cy - r * Math.sin(th * Math.PI / 180)];
+  const s = new Svg(200, 170);
+  if (t === 0) { // 中心角→円周角
+    const c = pick([80, 100, 110, 120, 130, 140, 150, 160]); const b0 = 270 - c / 2 - R(-10, 10); const B = P(b0), C = P(b0 + c), A = P(b0 + c + (360 - c) * 0.55);
+    s.circle(cx, cy, r).poly([A, B, C]).line(B[0], B[1], cx, cy).line(C[0], C[1], cx, cy).dot(cx, cy);
+    s.label(A, 'A', [cx, cy]).label(B, 'B', [cx, cy]).label(C, 'C', [cx, cy]).text(cx + 4, cy - 10, 'O');
+    s.arcLabel([cx, cy], B, C, 22, `${c}°`); s.arcLabel(A, B, C, 20, 'x', true);
+    return { q: `右の図のように，円Oの円周上に3点A，B，Cがある。∠BOC = ${c}° のとき，∠${V('x')} の大きさを求めなさい。${s}`, a: `${c / 2}°`, fig: true };
+  }
+  // ACが直径, ∠ACB=θ → ∠BAC=90−θ … 等弧 BC=CDで∠x
+  const th = R(25, 65); const A = P(150), C = P(-30); const B = P(-30 - 2 * (90 - th)); // ∠BAC = 90-th
+  s.circle(cx, cy, r).poly([A, B, C]).line(A[0], A[1], C[0], C[1]).dot(cx, cy).text(cx, cy - 10, 'O');
+  s.label(A, 'A', [cx, cy]).label(B, 'B', [cx, cy]).label(C, 'C', [cx, cy]);
+  s.arcLabel(C, A, B, 22, `${th}°`); s.arcLabel(A, B, C, 26, 'x', true);
+  return { q: `右の図で，線分ACは円Oの直径であり，点Bは円周上の点である。∠ACB = ${th}° のとき，∠${V('x')} の大きさを求めなさい。${s}`, a: `${90 - th}°` };
+};
+SM.heikou_kaku = () => {
+  // ℓ∥m，折れ線の角 x = a + b
+  const a = R(25, 70), b = R(25, 70);
+  const s = new Svg(240, 140); const ta = Math.tan(a * Math.PI / 180), tb = Math.tan(b * Math.PI / 180);
+  let px = 0, mx = 45 / ta, qx = mx - 45 / tb; const sh = 40 - Math.min(px, qx); px += sh; mx += sh; qx += sh;
+  s.line(10, 25, 225, 25).line(10, 115, 225, 115).text(232, 25, 'ℓ', { size: 14 }).text(232, 115, 'm', { size: 14, italic: true });
+  const P1 = [px, 25], Q1 = [qx, 115]; const M = [mx, 70];
+  s.pline([P1, M, Q1]); s.arcLabel(P1, [220, 25], M, 24, `${a}°`); s.arcLabel(Q1, [220, 115], M, 24, `${b}°`); s.arcLabel(M, P1, Q1, 18, 'x', true);
+  return { q: `右の図で，ℓ // ${V('m')} のとき，∠${V('x')} の大きさを求めなさい。${s}`, a: `${a + b}°` };
+};
+SM.ensui = () => {
+  const t = R(0, 2); const r = R(2, 6), l = r + R(1, 8);
+  if (t === 0) return { q: `底面の半径が ${r} cm，母線の長さが ${l} cm の円錐の側面の展開図のおうぎ形の中心角の大きさを求めなさい。`, a: `${fmtDec(360 * r / l)}°`, chk: Number.isInteger(360 * r / l) };
+  if (t === 1) return { q: `底面の半径が ${r} cm，母線の長さが ${l} cm の円錐の表面積を求めなさい。ただし，円周率は π とする。`, a: `${r * r + r * l}π cm<sup>2</sup>` };
+  const a = R(2, 6), b = R(3, 8); const ax = pick(['縦', '横']);
+  return { q: `直角をはさむ2辺の長さが ${a} cm，${b} cm の直角三角形を，長さ ${a} cm の辺を軸として1回転させてできる立体の体積を求めなさい。ただし，円周率は π とする。`, a: `${qh(q(b * b * a, 3))}π cm<sup>3</sup>` };
+};
+SM.sanheihou = () => {
+  const t = R(0, 1);
+  if (t === 0) { const a = R(1, 8), b = R(2, 9); const h = a * a + b * b; if (isSq(h) && R(0, 1)) return null; return { q: `直角をはさむ2辺の長さが ${a} cm，${b} cm の直角三角形の斜辺の長さを求めなさい。`, a: `${sqrtH(h)} cm` }; }
+  const c = R(4, 12), a = R(1, c - 1); return { q: `斜辺の長さが ${c} cm，他の1辺の長さが ${a} cm の直角三角形の，残りの辺の長さを求めなさい。`, a: `${sqrtH(c * c - a * a)} cm` };
+};
+SM.kyuu = () => { const r = R(1, 9); return R(0, 1) ? { q: `半径 ${r} cm の球の体積を求めなさい。ただし，円周率は π とする。`, a: `${qh(q(4 * r * r * r, 3))}π cm<sup>3</sup>` } : { q: `半径 ${r} cm の球の表面積を求めなさい。ただし，円周率は π とする。`, a: `${4 * r * r}π cm<sup>2</sup>` }; };
+SM.ougi = () => { const r = R(2, 12), th = pick([30, 45, 60, 72, 90, 120, 135, 150, 270]); const L = q(2 * r * th, 360), S = q(r * r * th, 360); return R(0, 1) ? { q: `半径 ${r} cm，中心角 ${th}° のおうぎ形の弧の長さを求めなさい。ただし，円周率は π とする。`, a: `${L.eq(1) ? '' : qh(L)}π cm` } : { q: `半径 ${r} cm，中心角 ${th}° のおうぎ形の面積を求めなさい。ただし，円周率は π とする。`, a: `${S.eq(1) ? '' : qh(S)}π cm<sup>2</sup>` }; };
+SM.soujihi = () => { const m = R(1, 4), n = R(2, 5); if (m >= n || gcd(m, n) > 1) return null; const t = R(0, 1); const A = R(2, 6) * m * m;
+  return t ? { q: `相似な2つの図形P，Qがあり，相似比は ${m} : ${n} である。Pの面積が ${A} cm<sup>2</sup> のとき，Qの面積を求めなさい。`, a: `${qh(q(A * n * n, m * m))} cm<sup>2</sup>` }
+    : { q: `相似な2つの立体P，Qがあり，相似比は ${m} : ${n} である。Pの体積が ${A * m} cm<sup>3</sup> のとき，Qの体積を求めなさい。`, a: `${qh(q(A * m * n * n * n, m * m * m))} cm<sup>3</sup>` }; };
+SM.ichiji = () => { const x = RNZ(-6, 8); const a = RNZ(-6, 7), c = RNZ(-6, 7); if (a === c) return null; const b = R(-9, 9); const d = a * x + b - c * x;
+  if (R(0, 1)) return { q: `方程式 ${poly([[a, X], [b, '']])} = ${poly([[c, X], [d, '']])} を解きなさい。`, a: `${X} = ${num(x)}` };
+  const k = R(2, 4), m = RNZ(-5, 5); const rhs = k * (x + m) - c * x; return { q: `方程式 ${k}(${poly([[1, X], [m, '']])}) = ${poly([[c, X], [rhs, '']])} を解きなさい。`, a: `${X} = ${num(x)}` }; };
+SM.hirei = () => { const k = RNZ(-6, 6); const x1 = RNZ(-5, 5), x2 = RNZ(-6, 6); if (x1 === x2) return null; return { q: `${Y} は ${X} に比例し，${X} = ${num(x1)} のとき ${Y} = ${num(k * x1)} である。${X} = ${num(x2)} のときの ${Y} の値を求めなさい。`, a: `${Y} = ${num(k * x2)}` }; };
+SM.kyori = () => { const x1 = R(-5, 5), y1 = R(-5, 5), dx = RNZ(-6, 6), dy = RNZ(-6, 6); return { q: `2点A${pt(x1, y1)}，B${pt(x1 + dx, y1 + dy)} 間の距離を求めなさい。`, a: sqrtH(dx * dx + dy * dy) }; };
+SM.heikin = () => { const n = pick([5, 6, 7, 8]); const data = range(1, n).map(() => R(2, 15)); const sum = data.reduce((a, b) => a + b, 0); if (sum % n && R(0, 1)) return null; const t = pick(['平均値', '中央値', '最頻値']);
+  const srt = data.slice().sort((a, b) => a - b); const cnt = {}; data.forEach(v => cnt[v] = (cnt[v] || 0) + 1); const mx = Math.max(...Object.values(cnt)); const modes = Object.keys(cnt).filter(k => cnt[k] === mx);
+  if (t === '最頻値' && (mx === 1 || modes.length > 1)) return null;
+  const ans = t === '平均値' ? fmtDec(sum / n, 2) : t === '中央値' ? fmtDec(median(srt)) : modes[0];
+  return { q: `下のデータは，ある班の生徒 ${n} 人が1か月に読んだ本の冊数である。このデータの${t}を求めなさい。<div class="data">${data.join('　')}<span class="unit">（単位：冊）</span></div>`, a: `${ans} 冊` }; };
+SM.kousi = () => { const a = pick([6, 8, 10, 12, 16, 18, 20]); const d = range(1, a).filter(v => a % v === 0).length; return { q: `関数 ${Y} = ${frac(a, X)} のグラフ上の点で，${X} 座標，${Y} 座標がともに整数である点は何個あるか求めなさい。`, a: `${2 * d} 個` }; };
+SM.nejire = () => { if (R(0, 1)) return { q: `直方体ABCD−EFGHで，辺ABとねじれの位置にある辺は何本あるか求めなさい。`, a: '4 本（CG，DH，EH，FG）' }; return pick([{ q: `三角柱ABC−DEFで，辺ABとねじれの位置にある辺をすべて答えなさい。`, a: 'CF，DF，EF' }, { q: `直方体ABCD−EFGHで，面ABCDと平行な辺は何本あるか求めなさい。`, a: '4 本（EF，FG，GH，HE）' }, { q: `直方体ABCD−EFGHで，辺AEと垂直な面をすべて答えなさい。`, a: '面ABCD，面EFGH' }]); };
+SM.murisuu = () => { const st = [['√4 は無理数である。', false], ['√2 は循環しない無限小数である。', true], ['5 の平方根は √5 と −√5 である。', true], ['√(−3)<sup>2</sup> = −3 である。', false], ['√9 = ±3 である。', false], ['0.333… は有理数である。', true], ['√2 + √3 = √5 である。', false], ['√12 = 2√3 である。', true], ['π は有理数である。', false], ['−√7 &lt; −2 である。', true]].map(([t, v]) => [t.replace('√(−3)<sup>2</sup>', rt('(−3)<sup>2</sup>')).replace(/√(\d+)/g, (m, n) => rt(n)), v]);
+  const want = R(0, 1); const T = st.filter(x => x[1] === !!want), F = st.filter(x => x[1] !== !!want); const four = shuffle([pick(T)].concat(sample(F, 3)));
+  return { q: `次のア〜エのうち，${want ? '正しいもの' : '正しくないもの'}を1つ選び，記号で答えなさい。${choices(four.map(x => x[0]), 1)}`, a: KANA[four.findIndex(x => x[1] === !!want)] }; };
+SM.yakusuu = () => { const t = R(0, 1); if (t) { const n = pick([24, 36, 48, 60, 72, 84, 90, 96, 100]); return { q: `${n} の正の約数は全部で何個あるか求めなさい。`, a: `${range(1, n).filter(v => n % v === 0).length} 個` }; } const g = R(2, 12), a = g * R(2, 9), b = g * R(2, 9); if (a === b) return null; return { q: `${a} と ${b} の最大公約数と最小公倍数を求めなさい。`, a: `最大公約数 ${gcd(a, b)}，最小公倍数 ${lcm(a, b)}` }; };
+SM.kyuu_entyuu = () => { const r = R(1, 6); return pick([{ q: `半径 ${r} cm の球がちょうど入る円柱（球が円柱の底面と側面に接する）の体積を求めなさい。ただし，円周率は π とする。`, a: `${2 * r ** 3}π cm<sup>3</sup>` }, { q: `球とその球がちょうど入る円柱の体積の比を，最も簡単な整数の比で求めなさい。`, a: '2 : 3' }]); };
+const SM_CALC = ['seifu', 'bunshiki', 'tankou', 'heihou', 'tenkai', 'bunsuShiki'];
+const SM_OTHER = { hou: ['renritsu', 'niji', 'henkei', 'inbun', 'ichiji'], kan: ['hanpirei', 'itiji', 'hen_iki', 'henka', 'hirei', 'kyori', 'kousi'], kazu: ['sqrtN', 'sqrtCount', 'soinsu', 'futoushiki', 'murisuu', 'yakusuu'], data: ['hyouhon', 'shibun', 'dice', 'cards', 'heikin'], zu: ['kakudo_tayoukei', 'enshuukaku', 'heikou_kaku', 'ensui', 'sanheihou', 'kyuu', 'ougi', 'soujihi', 'nejire', 'kyuu_entyuu'] };
+const SM_LABEL = { seifu: '正負の数の計算', bunshiki: '文字式の計算', tankou: '単項式の乗除', heihou: '平方根の計算', tenkai: '式の展開', bunsuShiki: '分数をふくむ式', renritsu: '連立方程式', niji: '2次方程式', henkei: '等式の変形', inbun: '因数分解', hanpirei: '反比例', itiji: '一次関数の式', hen_iki: '2乗に比例する関数の変域', henka: '変化の割合', sqrtN: '平方根と自然数', sqrtCount: '平方根の大小', soinsu: '素因数分解', futoushiki: '不等式', hyouhon: '標本調査', shibun: '四分位数', dice: 'さいころの確率', cards: 'カードの確率', kakudo_tayoukei: '多角形の角', enshuukaku: '円周角', heikou_kaku: '平行線と角', ensui: '円錐・回転体', sanheihou: '三平方の定理', kyuu: '球', ougi: 'おうぎ形', soujihi: '相似比と面積比・体積比', ichiji: '一次方程式', hirei: '比例', kyori: '2点間の距離', heikin: '代表値', kousi: '反比例と格子点', nejire: '空間の位置関係', murisuu: '平方根・無理数の性質', yakusuu: '約数・公約数', kyuu_entyuu: '球と円柱' };
+function genItem(key) { return retry(() => { const r = SM[key](); if (!r) return null; if (r.chk === false) return null; r.key = key; return r; }); }
+function genShomon() {
+  const calc = sample(SM_CALC, R(3, 4)).sort((a, b) => SM_CALC.indexOf(a) - SM_CALC.indexOf(b));
+  const groups = Object.keys(SM_OTHER); const other = [];
+  groups.forEach(g => other.push(pick(SM_OTHER[g])));
+  const extra = sample(groups, R(0, 1)).map(g => pick(SM_OTHER[g].filter(k => !other.includes(k))));
+  const keys = calc.concat(other, extra);
+  const items = keys.map(genItem);
+  // 計算はまとめて①〜
+  const calcItems = items.slice(0, calc.length); const rest = items.slice(calc.length);
+  const first = { q: `次の計算をしなさい。<div class="calc">${calcItems.map((it, i) => `<div>${MARU[i]}　${it.q}</div>`).join('')}</div>`, a: calcItems.map((it, i) => `${MARU[i]} ${it.a}`).join('　'), tag: '計算' };
+  const qs = [first].concat(rest.map(it => ({ q: /[。]$|<\/svg>$|<\/div>$/.test(it.q) ? it.q : it.q + ' を計算しなさい。', a: it.a, tag: SM_LABEL[it.key] })));
+  return { title: '小問集合', lead: `次の(1)〜(${qs.length})の問いに答えなさい。`, items: qs };
+}
+
+// ===== 関数 =====
+const UNIT_NOTE = 'ただし，原点Oから点(1, 0)までの距離及び原点Oから点(0, 1)までの距離をそれぞれ1 cmとする。';
+function planeFor(pts, extraY = 0, W = 290, maxH = 290) {
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]).concat([0]);
+  const xmin = Math.min(...xs, 0) - 1.6, xmax = Math.max(...xs, 0) + 1.6, ymin = Math.min(...ys) - 1.2 - extraY, ymax = Math.max(...ys) * 1.08 + 1.6;
+  const sx = W / (xmax - xmin); const sy = Math.min(sx, maxH / (ymax - ymin));
+  return new Plane(xmin, xmax, ymin, ymax, W, { sy });
+}
+const KF = {};
+KF.parab_line = () => {
+  const a = pick([q(1), q(1, 2), q(1, 2), q(2), q(1, 3), q(1, 4), q(2, 3)]);
+  const xs = range(-6, 6).filter(x => x && a.mul(x * x).isInt());
+  const xA = pick(xs.filter(x => x < 0)), xB = pick(xs.filter(x => x > 0)); if (!xA || !xB) return null;
+  const yA = a.mul(xA * xA), yB = a.mul(xB * xB); if (yB.v > 40 || yA.v > 40) return null;
+  const m = a.mul(xA + xB), b0 = a.mul(-xA * xB); // 直線AB
+  const area = b0.mul(xB - xA).div(2);
+  const items = [];
+  const vari = pick(['k', 'bis', 'para', 'eq', 'bisA']);
+  items.push({ q: `${A_} の値を求めなさい。`, a: `${A_} = ${qh(a)}`, ex: `点Bは ${Y} = ${A_}${X2} 上の点なので，${qh(yB)} = ${A_} × ${xB}<sup>2</sup>` });
+  items.push({ q: `2点A，Bを通る直線の式を求めなさい。`, a: lineEq(m, b0), ex: `A${pt(xA, yA)}，B${pt(xB, yB)} より傾きは ${qh(yB.sub(yA))} ÷ ${xB - xA} = ${qh(m)}` });
+  items.push({ q: `△OABの面積を求めなさい。`, a: `${qh(area)} cm<sup>2</sup>`, ex: `直線ABと ${Y} 軸の交点(0, ${qh(b0)})で分けて，${frac(1, 2)} × ${qh(b0)} × ${xB - xA}` });
+  const P = new Plane(0, 1, 0, 1); // dummy
+  const pl = planeFor([[xA, yA.v], [xB, yB.v]]);
+  pl.fn(x => a.v * x * x).line(m.v, b0.v, { cls: 'thin' }).seg([0, 0], [xA, yA.v], { cls: 'thin' }).seg([0, 0], [xB, yB.v], { cls: 'thin' });
+  pl.pt([xA, yA.v], 'A', [-1, 0.6]).pt([xB, yB.v], 'B', [1, 0.3]);
+  pl.tag(x => a.v * x * x, 'y = ax²', { dx: 8, dy: 4 });
+  if (vari === 'k') {
+    const k = R(2, 3); const c = b0.mul(k + 1);
+    items.push({ q: `${Y} 軸上の ${Y} 座標が正の部分に点Cをとる。△ABCの面積が△OABの面積の ${k} 倍となるとき，点Cの座標を求めなさい。`, a: `C${pt(0, c)}`, ex: `直線ABと ${Y} 軸の交点をDとすると，CD = ${k}OD となればよい。` });
+  } else if (vari === 'bis') {
+    if (xA + xB === 0) return null; const M = [q(xA + xB, 2), yA.add(yB).div(2)]; const sl = M[1].div(M[0]);
+    items.push({ q: `原点Oを通り，△OABの面積を2等分する直線の式を求めなさい。`, a: `${Y} = ${poly([[sl, X]])}`, ex: `線分ABの中点${pt(M[0], M[1])}を通ればよい。` });
+  } else if (vari === 'para') {
+    const C = [xA + xB, yA.add(yB)];
+    items.push({ q: `四角形OACBが平行四辺形となるように点Cをとるとき，点Cの座標を求めなさい。`, a: `C${pt(C[0], C[1])}`, ex: `OA と BC が平行で長さが等しいので，Cは Bを A−O だけ移動した点。` });
+  } else if (vari === 'bisA') {
+    const M = [q(xB, 2), yB.div(2)]; if (M[0].eq(xA)) return null; const sl = M[1].sub(yA).div(M[0].sub(xA)); const ic = yA.sub(sl.mul(xA));
+    items.push({ q: `点Aを通り，△OABの面積を2等分する直線の式を求めなさい。`, a: lineEq(sl, ic), ex: `線分OBの中点${pt(M[0], M[1])}を通ればよい。` });
+  } else {
+    if (xA + xB <= 0) return null; const xp = xA + xB; const yp = a.mul(xp * xp);
+    items.push({ q: `関数 ${Y} = ${poly([[a, X2]])} のグラフ上の，原点Oから点Bまでの部分に点Pをとる。△ABPの面積が△OABの面積と等しくなるとき，点Pの座標を求めなさい。ただし，点Pは原点Oとは異なる点とする。`.replace(`関数 ${Y} = ${poly([[a, X2]])} のグラフ`, `関数 ${Y} = ${A_}${X2} のグラフ`), a: `P${pt(xp, yp)}`, ex: `原点Oを通り直線ABに平行な直線 ${Y} = ${poly([[m, X]])} と放物線の交点を求める。` });
+  }
+  return { title: '関数（放物線と直線）', lead: `下の図のように，関数 ${Y} = ${A_}${X2} のグラフ上に2点A，Bがあり，点Aの ${X} 座標は ${num(xA)}，点Bの座標は${pt(xB, yB)}である。<br>このとき，次の問いに答えなさい。${UNIT_NOTE}`, fig: pl.toString(), items };
+};
+KF.parab_hyper = () => {
+  const p = R(1, 4), a = pick([q(1), q(1, 2), q(2), q(1, 4)]); const yA = a.mul(p * p); if (!yA.isInt()) return null;
+  const b = yA.mul(p); const xB = -R(1, 4); const yB = a.mul(xB * xB); if (!yB.isInt() || xB === -p) return null;
+  const m = a.mul(p + xB), b0 = a.mul(-p * xB); const area = b0.mul(p - xB).div(2);
+  const pl = planeFor([[p, yA.v], [xB, yB.v], [b.v / 0.9, 0.9]], 0);
+  pl.fn(x => a.v * x * x).fn(x => b.v / x, 0.05, pl.xmax).line(m.v, b0.v, { cls: 'thin' }).seg([0, 0], [xB, yB.v], { cls: 'thin' }).seg([0, 0], [p, yA.v], { cls: 'thin' });
+  pl.pt([p, yA.v], 'A', [1, 0.4]).pt([xB, yB.v], 'B', [-1, 0.4]); pl.tag(x => a.v * x * x, 'y = ax²', { dx: 8, dy: 4 }).tag(x => b.v / x, 'y = b/x', { dx: 2, dy: -10 });
+  const items = [
+    { q: `${B_} の値を求めなさい。`, a: `${B_} = ${qh(b)}` },
+    { q: `${A_} の値を求めなさい。`, a: `${A_} = ${qh(a)}` },
+    { q: `2点A，Bを通る直線の式を求めなさい。`, a: lineEq(m, b0) },
+    { q: `△OABの面積を求めなさい。`, a: `${qh(area)} cm<sup>2</sup>` },
+  ];
+  return { title: '関数（放物線と反比例）', lead: `下の図のように，関数 ${Y} = ${A_}${X2} のグラフと，関数 ${Y} = ${frac(V('b'), V('x'))}（${X} &gt; 0）のグラフが点Aで交わっている。点Aの座標は${pt(p, yA)}である。また，関数 ${Y} = ${A_}${X2} のグラフ上に ${X} 座標が ${num(xB)} となる点Bをとる。<br>このとき，次の問いに答えなさい。${UNIT_NOTE}`, fig: pl.toString(), items };
+};
+KF.two_lines = () => {
+  const xp = RNZ(-4, 5), yp = R(1, 7); const m1 = pick([q(1), q(2), q(1, 2), q(3), q(-1), q(-2), q(-1, 2)]), m2 = pick([q(1), q(2), q(-1), q(-2), q(-3), q(1, 2), q(-1, 2)]); if (m1.eq(m2)) return null;
+  const b1 = q(yp).sub(m1.mul(xp)), b2 = q(yp).sub(m2.mul(xp)); if (!b1.isInt() || !b2.isInt() || b1.eq(b2) || Math.abs(b1.v) > 10 || Math.abs(b2.v) > 10) return null;
+  // ℓを2点で与える
+  if (b1.n === 0 || b2.n === 0) return null;
+  const ks = sample([-3, -2, -1, 1, 2, 3], 2); const x1 = xp + ks[0] * m1.d, x2 = xp + ks[1] * m1.d; const y1 = m1.mul(x1).add(b1), y2 = m1.mul(x2).add(b1);
+  if (Math.abs(y1.v) > 12 || Math.abs(y2.v) > 12) return null;
+  const area = b1.sub(b2).abs().mul(Math.abs(xp)).div(2);
+  const Mid = b1.add(b2).div(2); const sl = q(yp).sub(Mid).div(xp);
+  const pl = planeFor([[xp, yp], [0, b1.v], [0, b2.v]]);
+  pl.line(m1.v, b1.v).line(m2.v, b2.v); pl.tag(x => m1.v * x + b1.v, 'ℓ', { dx: 6, dy: -8 }).tag(x => m2.v * x + b2.v, 'm', { dx: 6, dy: -8 }); pl.pt([xp, yp], 'P', [xp > 0 ? 1 : -1, 1]).pt([0, b1.v], 'A', [-1, 0]).pt([0, b2.v], 'B', [-1, 0]);
+  const ly = v => (v.v > 0 ? 1 : -1);
+  const items = [
+    { q: `直線 ℓ の式を求めなさい。`, a: lineEq(m1, b1) },
+    { q: `点Pの座標を求めなさい。`, a: `P${pt(xp, yp)}`, ex: `2直線の式を連立方程式として解く。` },
+    { q: `△PABの面積を求めなさい。`, a: `${qh(area)} cm<sup>2</sup>`, ex: `AB = ${qh(b1.sub(b2).abs())} を底辺，点Pの ${X} 座標の絶対値 ${Math.abs(xp)} を高さとする。` },
+    { q: `点Pを通り，△PABの面積を2等分する直線の式を求めなさい。`, a: lineEq(sl, q(yp).sub(sl.mul(xp))), ex: `線分ABの中点(0, ${qh(Mid)})を通ればよい。` },
+  ];
+  return { title: '関数（2直線と三角形）', lead: `下の図で，直線 ℓ は2点${pt(x1, y1)}，${pt(x2, y2)}を通る直線，直線 ${V('m')} は ${lineEq(m2, b2)} のグラフである。2直線 ℓ，${V('m')} の交点をPとし，直線 ℓ，${V('m')} と ${Y} 軸との交点をそれぞれA，Bとする。<br>このとき，次の問いに答えなさい。${UNIT_NOTE}`.replace(`2点${pt(xp, yp)}，`, `2点${pt(xp, yp)}，`), fig: pl.toString(), items };
+};
+KF.rect_parab = () => {
+  const a = pick([q(1), q(1, 2), q(2), q(1, 3)]), b = pick([q(-1), q(-1, 2), q(-1, 4), q(-1, 3), q(-2)]); if (a.v <= b.v) return null; if (q(2).div(a.sub(b)).v > 8) return null;
+  const t0 = pick([2, 3, 4]); const AB0 = a.sub(b).mul(t0 * t0);
+  const ts = q(2).div(a.sub(b)); // 正方形
+  const t2 = pick([2, 3, 4].filter(x => x !== t0)); const cy = a.add(b).mul(t2 * t2).div(2); const D = [-t2, a.mul(t2 * t2)]; const sl = D[1].sub(cy).div(-t2 - 0); const ic = cy; // 中心(0,cy)
+  const pl = planeFor([[t0, a.v * t0 * t0], [t0, b.v * t0 * t0], [-t0, a.v * t0 * t0]], 0);
+  pl.fn(x => a.v * x * x).fn(x => b.v * x * x);
+  const A = [t0, a.v * t0 * t0], B = [t0, b.v * t0 * t0], C = [-t0, b.v * t0 * t0], Dd = [-t0, a.v * t0 * t0];
+  pl.seg(A, B, { cls: 'thin' }).seg(B, C, { cls: 'thin' }).seg(C, Dd, { cls: 'thin' }).seg(Dd, A, { cls: 'thin' });
+  pl.pt(A, 'A', [1, 0.5]).pt(B, 'B', [1, -0.5]).pt(C, 'C', [-1, -0.5]).pt(Dd, 'D', [-1, 0.5]);
+  const items = [
+    { q: `${V('t')} = ${t0} のとき，線分ABの長さを求めなさい。`, a: `${qh(AB0)} cm` },
+    { q: `四角形ABCDが正方形となるときの ${V('t')} の値を求めなさい。`, a: `${V('t')} = ${qh(ts)}`, ex: `AB = (${qh(a)} ${MINUS} (${qh(b)}))${V('t')}<sup>2</sup>，AD = 2${V('t')} が等しくなる。` },
+    { q: `${V('t')} = ${t2} のとき，点Dを通り，長方形ABCDの面積を2等分する直線の式を求めなさい。`, a: lineEq(sl, ic), ex: `長方形の対角線の交点(0, ${qh(cy)})を通ればよい。` },
+  ];
+  return { title: '関数（2つの放物線と長方形）', lead: `下の図のように，関数 ${Y} = ${poly([[a, X2]])} のグラフ上に点A，関数 ${Y} = ${poly([[b, X2]])} のグラフ上に点Bがあり，2点A，Bの ${X} 座標はともに ${V('t')}（${V('t')} &gt; 0）である。また，点A，Bと ${Y} 軸について対称な点をそれぞれD，Cとし，長方形ABCDをつくる。<br>このとき，次の問いに答えなさい。${UNIT_NOTE}`, fig: pl.toString(), items };
+};
+const KF_LABEL = { parab_line: '放物線と直線（面積・等積変形）', parab_hyper: '放物線と反比例', two_lines: '2直線と三角形の面積', rect_parab: '2つの放物線と長方形' };
+KF.parab_min = () => {
+  const a = pick([q(1), q(1, 2), q(1, 2), q(2), q(1, 4), q(1, 3)]);
+  const xs = range(1, 6).filter(x => a.mul(x * x).isInt()); if (xs.length < 2) return null;
+  const [x1, x2] = sample(xs, 2).sort((u, v) => u - v); const y1 = a.mul(x1 * x1), y2 = a.mul(x2 * x2); if (y2.v > 36) return null;
+  const m = a.mul(x1 + x2), c = a.mul(-x1 * x2); const area = c.abs().mul(x2 - x1).div(2);
+  const sl = y2.sub(y1).div(x2 + x1), ic = y1.add(sl.mul(x1)); // A'(-x1,y1) と B
+  const pl = planeFor([[x1, y1.v], [x2, y2.v], [-x1, y1.v]]);
+  pl.fn(x => a.v * x * x).seg([0, 0], [x1, y1.v], { cls: 'thin' }).seg([0, 0], [x2, y2.v], { cls: 'thin' }).seg([x1, y1.v], [x2, y2.v], { cls: 'thin' });
+  pl.pt([x1, y1.v], 'A', [1, -0.2]).pt([x2, y2.v], 'B', [1, 0.3]); pl.tag(x => a.v * x * x, 'y = ax²', { dx: 8, dy: 4 });
+  const items = [
+    { q: `${A_} の値を求めなさい。`, a: `${A_} = ${qh(a)}` },
+    { q: `2点A，Bを通る直線の式を求めなさい。`, a: lineEq(m, c) },
+    { q: `△OABの面積を求めなさい。`, a: `${qh(area)} cm<sup>2</sup>`, ex: `直線ABと ${Y} 軸の交点(0, ${qh(c)})を使い，${frac(1, 2)} × ${qh(c.abs())} × (${x2} − ${x1})` },
+    { q: `${Y} 軸上に点Pをとる。AP + PB の長さが最も短くなるとき，点Pの座標を求めなさい。`, a: `P${pt(0, ic)}`, ex: `点Aと ${Y} 軸について対称な点A′(${num(-x1)}, ${qh(y1)})をとり，直線A′Bと ${Y} 軸の交点を求める。直線A′Bは ${lineEq(sl, ic)}` },
+  ];
+  return { title: '関数（線分の和の最小）', lead: `下の図のように，関数 ${Y} = ${A_}${X2} のグラフ上に2点A，Bがある。点Aの ${X} 座標は ${x1}，点Bの座標は${pt(x2, y2)}である。<br>このとき，次の問いに答えなさい。${UNIT_NOTE}`, fig: pl.toString(), items };
+};
+KF_LABEL.parab_min = '放物線と線分の和の最小';
+KF.kaiten = () => {
+  const b = R(2, 8), c = R(2, 8); const m = q(-b, c); const B = m.d, Cc = -m.n; // m = -Cc/B → y = b - (Cc/B)... 使うのは x = c - B*j, y = Cc*j
+  const j1 = R(1, 2), j2 = j1 + R(1, 2); const P1 = [c - B * j1, Cc * j1], P2 = [c - B * j2, Cc * j2]; if (Math.abs(P2[0]) > 10 || P2[1] > 14 || P1[0] === 0 || P2[0] === 0) return null;
+  const pl = planeFor([[c, 0], [0, b], P1, P2]); pl.line(m.v, b); pl.s.poly([[pl.X(0), pl.Y(0)], [pl.X(c), pl.Y(0)], [pl.X(0), pl.Y(b)]], { fill: 'var(--shade)' }); pl.line(m.v, b);
+  pl.pt([c, 0], 'A', [0.5, -1]).pt([0, b], 'B', [-1, 0.3]).tag(x => m.v * x + b, 'ℓ', { dx: 4, dy: -8 });
+  const items = [
+    { q: `直線 ℓ の式を求めなさい。`, a: lineEq(m, b) },
+    { q: `△OABの面積を求めなさい。`, a: `${qh(q(b * c, 2))} cm<sup>2</sup>` },
+    { q: `△OABを，${X} 軸を軸として1回転させてできる立体の体積を求めなさい。ただし，円周率は π とする。`, a: `${qh(q(b * b * c, 3))}π cm<sup>3</sup>`, ex: `底面の半径 ${b} cm，高さ ${c} cm の円錐` },
+    { q: `△OABを，${Y} 軸を軸として1回転させてできる立体の体積を求めなさい。ただし，円周率は π とする。`, a: `${qh(q(c * c * b, 3))}π cm<sup>3</sup>`, ex: `底面の半径 ${c} cm，高さ ${b} cm の円錐` },
+  ];
+  return { title: '関数（直線と回転体）', lead: `下の図のように，2点${pt(P1[0], P1[1])}，${pt(P2[0], P2[1])}を通る直線 ℓ がある。直線 ℓ と ${X} 軸，${Y} 軸との交点をそれぞれA，Bとする。<br>このとき，次の問いに答えなさい。${UNIT_NOTE}`, fig: pl.toString(), items };
+};
+KF.parab_rect = () => {
+  const a = pick([q(1), q(1, 2), q(1, 4), q(2), q(1, 3)]); const t0 = pick([1, 2, 3, 4].filter(t => a.mul(t * t).isInt())); const ts = q(2).div(a);
+  const t1 = pick([1, 2, 3, 4, 5, 6].filter(t => a.mul(t * t).isInt() && t !== t0)); if (!t0 || !t1) return null; const Lp = a.mul(2 * t1 * t1).add(4 * t1);
+  const t2 = pick([2, 4, 6].filter(t => t !== t0)); const sl = a.mul(t2).div(2); const ic = a.mul(t2 * t2).div(2);
+  const T = t0; const yA = a.mul(T * T).v; const pl = planeFor([[T, yA], [-T, yA], [ts.v, a.v * ts.v * ts.v]]);
+  pl.fn(x => a.v * x * x); const A = [T, yA], B = [-T, yA], C = [-T, 0], D = [T, 0]; pl.seg(A, B, { cls: 'thin' }).seg(B, C, { cls: 'thin' }).seg(C, D, { cls: 'thin' }).seg(D, A, { cls: 'thin' });
+  pl.pt(A, 'A', [1, 0.6]).pt(B, 'B', [-1, 0.6]).pt(C, 'C', [-0.6, -1]).pt(D, 'D', [0.6, -1]).tag(x => a.v * x * x, `y = ${a.d === 1 ? (a.n === 1 ? '' : a.n) : a.n + '/' + a.d}x²`, { dx: 8, dy: 4 });
+  const items = [
+    { q: `${V('t')} = ${t0} のとき，長方形ABCDの周の長さを求めなさい。`, a: `${qh(a.mul(2 * t0 * t0).add(4 * t0))} cm` },
+    { q: `長方形ABCDが正方形となるときの ${V('t')} の値を求めなさい。`, a: `${V('t')} = ${qh(ts)}`, ex: `AB = 2${V('t')}，AD = ${poly([[a, sup(V('t'), 2)]])} が等しい。` },
+    { q: `長方形ABCDの周の長さが ${qh(Lp)} cm となるときの ${V('t')} の値を求めなさい。`, a: `${V('t')} = ${t1}`, ex: `2 × 2${V('t')} + 2 × ${poly([[a, sup(V('t'), 2)]])} = ${qh(Lp)} を解き，${V('t')} &gt; 0 の解を選ぶ。` },
+    { q: `${V('t')} = ${t2} のとき，点Cを通り，長方形ABCDの面積を2等分する直線の式を求めなさい。`, a: lineEq(sl, sl.mul(t2)), ex: `長方形の対角線の交点(0, ${qh(ic)})を通る。` },
+  ];
+  return { title: '関数（放物線と長方形）', lead: `下の図のように，関数 ${Y} = ${poly([[a, X2]])} のグラフ上に，${X} 座標が ${V('t')} である点Aと，${X} 座標が ${MINUS}${V('t')} である点Bをとる（${V('t')} &gt; 0）。また，${X} 軸上に点C(${MINUS}${V('t')}, 0)，D(${V('t')}, 0)をとり，長方形ABCDをつくる。<br>このとき，次の問いに答えなさい。${UNIT_NOTE}`, fig: pl.toString(), items };
+};
+KF_LABEL.kaiten = '直線と回転体の体積'; KF_LABEL.parab_rect = '放物線と長方形（正方形になる条件）';
+KF.douten_parab = () => {
+  const a = pick([q(1), q(1, 2), q(1, 4), q(1, 3)]); const xs = range(-6, 6).filter(x => x && a.mul(x * x).isInt()); const x1 = pick(xs.filter(x => x < 0)), x2 = pick(xs.filter(x => x > 0)); if (!x1 || !x2) return null;
+  const y1 = a.mul(x1 * x1), y2 = a.mul(x2 * x2); const m = a.mul(x1 + x2), b = a.mul(-x1 * x2); if (y1.v > 30 || y2.v > 30) return null;
+  const len = x => m.mul(x).add(b).sub(a.mul(x * x)); // QR
+  const t1 = pick(range(x1 + 1, x2 - 1).filter(x => x)); if (t1 === undefined) return null; const cand = range(x1 + 1, x2 - 1).filter(x => x !== t1);
+  const tk = pick(cand); if (tk === undefined) return null; const K = len(tk); const other = q(x1 + x2).sub(tk); // 対称な解
+  const maxX = q(x1 + x2, 2); const maxL = len(maxX);
+  const pl = planeFor([[x1, y1.v], [x2, y2.v]]); pl.fn(x => a.v * x * x).line(m.v, b.v, { cls: 'thin' }); pl.pt([x1, y1.v], 'A', [-1, 0.5]).pt([x2, y2.v], 'B', [1, 0.3]);
+  const tv = (x1 + x2) / 2 + 0.6; const Qp = [tv, a.v * tv * tv], Rp = [tv, m.v * tv + b.v]; pl.seg([tv, 0], Rp, { dash: '3 2', cls: 'thin' }).pt(Qp, 'Q', [1, -0.4]).pt(Rp, 'R', [1, 0.6]).pt([tv, 0], 'P', [0.6, -1]);
+  const items = [
+    { q: `2点A，Bを通る直線の式を求めなさい。`, a: lineEq(m, b) },
+    { q: `${V("t")} = ${num(t1)} のとき，線分QRの長さを求めなさい。`, a: `${qh(len(t1))} cm` },
+    { q: `線分QRの長さを ${V('t')} を用いた式で表しなさい。`, a: `(${poly([[a.neg(), sup(V('t'), 2)], [m, V('t')], [b, '']])}) cm` },
+    { q: `線分QRの長さが ${qh(K)} cm となるときの ${V('t')} の値をすべて求めなさい。`, a: other.eq(tk) ? `${V("t")} = ${num(tk)}` : `${V('t')} = ${[q(tk), other].sort((u, v) => u.v - v.v).map(qh).join(', ')}` },
+  ];
+  if (!other.isInt() && !other.mul(2).isInt()) return null;
+  return { title: '関数（放物線と直線上を動く点）', lead: `下の図のように，関数 ${Y} = ${poly([[a, X2]])} のグラフと直線 ℓ が2点A，Bで交わっていて，点Aの ${X} 座標は ${num(x1)}，点Bの ${X} 座標は ${x2} である。${X} 軸上の点P(${V('t')}, 0)を通り ${Y} 軸に平行な直線と，関数 ${Y} = ${poly([[a, X2]])} のグラフ，直線 ℓ との交点をそれぞれQ，Rとする。ただし，${num(x1)} &lt; ${V('t')} &lt; ${x2} とする。<br>このとき，次の問いに答えなさい。${UNIT_NOTE}`, fig: pl.toString(), items };
+};
+KF_LABEL.douten_parab = '放物線と直線の間を動く点';
+KF.hanpirei = () => {
+  const a = pick([6, 8, 12, 16, 18, 20, 24, 30, 36]); const ds = range(1, a).filter(d => a % d === 0); const [p, qq] = sample(ds.filter(d => d > 1 && d < a), 2).sort((u, v) => u - v); if (!p || !qq) return null;
+  const A = [p, a / p], B = [qq, a / qq]; const m = q(B[1] - A[1], qq - p), b = q(A[1]).sub(m.mul(p)); const area = q(Math.abs(A[0] * B[1] - B[0] * A[1]), 2);
+  const pl = planeFor([A, B, [a / 12 + 0.6, 12]]); pl.fn(x => a / x, 0.05, pl.xmax); pl.seg([0, 0], A, { cls: 'thin' }).seg([0, 0], B, { cls: 'thin' }).seg(A, B, { cls: 'thin' }); pl.pt(A, 'A', [1, 0.6]).pt(B, 'B', [1, 0.6]).tag(x => a / x, 'y = a/x', { dx: 4, dy: -10 });
+  const items = [
+    { q: `${A_} の値を求めなさい。`, a: `${A_} = ${a}` },
+    { q: `関数 ${Y} = ${frac(A_, X)} のグラフ上の点で，${X} 座標，${Y} 座標がともに正の整数である点は何個あるか求めなさい。`, a: `${ds.length} 個`, ex: `${X} 座標は ${a} の正の約数（${ds.join('，')}）` },
+    { q: `点Bの ${X} 座標が ${qq} のとき，2点A，Bを通る直線の式を求めなさい。`, a: lineEq(m, b) },
+    { q: `(3)のとき，△OABの面積を求めなさい。`, a: `${qh(area)} cm<sup>2</sup>`, ex: `直線ABと ${Y} 軸の交点(0, ${qh(b)})を利用するか，長方形から周りの直角三角形をひいて求める。` },
+  ];
+  return { title: '関数（反比例のグラフ）', lead: `下の図のように，関数 ${Y} = ${frac(A_, X)}（${X} &gt; 0）のグラフ上に2点A，Bがある。点Aの座標は${pt(A[0], A[1])}である。<br>このとき，次の問いに答えなさい。${UNIT_NOTE}`, fig: pl.toString(), items };
+};
+KF_LABEL.hanpirei = '反比例のグラフ（格子点・面積）';
+KF.sougou = () => {
+  const a = pick([q(1), q(1, 2), q(1, 3), q(2), q(1, 4)]); const xs = range(-6, 6).filter(x => x && a.mul(x * x).isInt());
+  const xA = pick(xs.filter(x => x < 0)), xB = pick(xs.filter(x => x > 0)); if (!xA || !xB || xA === -xB) return null;
+  const yA = a.mul(xA * xA), yB = a.mul(xB * xB); if (yA.v > 30 || yB.v > 30) return null; const m = a.mul(xA + xB), c = a.mul(-xA * xB);
+  const k = pick([2, 3]); const Px = q(xA).add(q(xB - xA, k + 1)), Py = yA.add(yB.sub(yA).div(k + 1)); const sl = Py.div(Px); if (Px.n === 0) return null;
+  const D = c.neg().div(m); const g = gcd(-xA, xB);
+  const pl = planeFor([[xA, yA.v], [xB, yB.v]]); pl.fn(x => a.v * x * x).line(m.v, c.v, { cls: 'thin' }).seg([0, 0], [xA, yA.v], { cls: 'thin' }).seg([0, 0], [xB, yB.v], { cls: 'thin' });
+  pl.pt([xA, yA.v], 'A', [-1, 0.5]).pt([xB, yB.v], 'B', [1, 0.3]).pt([0, c.v], 'C', [-1, -0.8]).tag(x => a.v * x * x, 'y = ax²', { dx: 8, dy: 4 });
+  const items = [
+    { q: `${A_} の値を求めなさい。`, a: `${A_} = ${qh(a)}` },
+    { q: `直線ABの式を求めなさい。`, a: lineEq(m, c) },
+    { q: `直線ABと ${Y} 軸との交点をCとする。AC : CB を最も簡単な整数の比で求めなさい。`, a: `${-xA / g} : ${xB / g}`, ex: `平行線と線分の比より，AC : CB は点A，Bの ${X} 座標の絶対値の比に等しい。` },
+    { q: `△OACと△OBCの面積の比を，最も簡単な整数の比で求めなさい。`, a: `${-xA / g} : ${xB / g}`, ex: '底辺OCが共通なので，面積の比は高さ（A，Bの x 座標の絶対値）の比。' },
+    { q: `線分AB上に点Pをとり，△OAPと△OBPの面積の比が 1 : ${k} となるようにする。直線OPの式を求めなさい。`, a: `${Y} = ${poly([[sl, X]])}`, ex: `AP : PB = 1 : ${k} だから，Pの ${X} 座標は ${qh(Px)}，${Y} 座標は ${qh(Py)}` },
+  ];
+  return { title: '関数と図形の総合問題（面積の比）', lead: `下の図のように，関数 ${Y} = ${A_}${X2} のグラフ上に2点A，Bがあり，点Aの座標は${pt(xA, yA)}，点Bの ${X} 座標は ${xB} である。<br>このとき，次の問いに答えなさい。${UNIT_NOTE}`, fig: pl.toString(), items };
+};
+KF_LABEL.sougou = '関数と図形の総合（面積の比）';
+
+// ===== 図形 =====
+const LET = ['(a)', '(b)', '(c)', '(d)'];
+function proofFill(lines, opts) { // lines: html with {a}{b}{c}
+  let body = lines.join('<br>'); ['a', 'b', 'c', 'd'].forEach((k, i) => { body = body.split(`{${k}}`).join(`<span class="bx sm">${LET[i]}</span>`); });
+  return `<div class="proof">${body}</div><div class="opts"><span class="optt">選択肢</span>${opts.map((o, i) => `<span><b>${KANA[i]}</b> ${o}</span>`).join('')}</div>`;
+}
+// 分数座標の交点
+function interQ(p1, p2, p3, p4) { // 各点 [Q,Q]
+  const [x1, y1] = p1, [x2, y2] = p2, [x3, y3] = p3, [x4, y4] = p4;
+  const d = x1.sub(x2).mul(y3.sub(y4)).sub(y1.sub(y2).mul(x3.sub(x4)));
+  const a = x1.mul(y2).sub(y1.mul(x2)), b = x3.mul(y4).sub(y3.mul(x4));
+  return [a.mul(x3.sub(x4)).sub(x1.sub(x2).mul(b)).div(d), a.mul(y3.sub(y4)).sub(y1.sub(y2).mul(b)).div(d)];
+}
+const areaQ = (p, r, s) => r[0].sub(p[0]).mul(s[1].sub(p[1])).sub(s[0].sub(p[0]).mul(r[1].sub(p[1]))).abs().div(2);
+const ptQ = (p, r, t) => [p[0].add(r[0].sub(p[0]).mul(t)), p[1].add(r[1].sub(p[1]).mul(t))];
+const ratioH = (a, b) => { const g = gcd(a, b); return `${a / g} : ${b / g}`; };
+const qRatio = (x) => { x = Q.of(x); return `${x.n} : ${x.d}`; }; // x = n/d を n:d で
+
+const ZU = {};
+ZU.heikoushihenkei = () => {
+  const m = R(1, 4), n = R(1, 4); if (gcd(m, n) !== 1) return null; const s = R(3, 9) * m; // AB
+  // 図
+  const Aq = [0, 120], Bq = [40, 20], Cq = [220, 20], Dq = [180, 120];
+  const t = m / (m + n); const E = lerp(Bq, Cq, t); const F = interLines(Aq, E, Dq, Cq);
+  const G = interLines(Aq, E, Bq, Dq);
+  const pts = [Aq, Bq, Cq, Dq, E, F]; const tf = fitPts(pts, 300, 190, 26); const [A, B, C, D, Ep, Fp, Gp] = [Aq, Bq, Cq, Dq, E, F, G].map(tf);
+  const sv = new Svg(300, 190); sv.poly([A, B, C, D]).line(A[0], A[1], Fp[0], Fp[1]).line(C[0], C[1], Fp[0], Fp[1]);
+  const c0 = cen([A, B, C, D]); [[A, 'A'], [B, 'B'], [C, 'C'], [D, 'D']].forEach(([p, l]) => sv.label(p, l, c0));
+  sv.text(Ep[0] + 6, Ep[1] - 12, 'E').text(Fp[0] + 12, Fp[1], 'F');
+  const withG = R(0, 1); if (withG) { sv.line(B[0], B[1], D[0], D[1], { cls: 'thin' }); sv.text(Gp[0], Gp[1] - 13, 'G'); }
+  const CF = q(s * n, m); const ratio = q(n * n, 2 * m * (m + n)); // △ECF / ▱
+  const items = [
+    { q: `△ABE ∽ △FCE となることを次のように証明した。${LET[0]}〜${LET[2]} にあてはまるものを，選択肢のア〜カからそれぞれ1つずつ選び，記号で答えなさい。` + proofFill([
+      '△ABEと△FCEにおいて，', '{a}は等しいから，∠AEB = ∠FEC　……①', 'AB // DF より，平行線の{b}は等しいから，∠BAE = ∠CFE　……②', '①，②より，{c}がそれぞれ等しいから，△ABE ∽ △FCE'],
+    ['同位角', '錯角', '対頂角', '3組の辺の比', '2組の辺の比とその間の角', '2組の角']), a: `(a) ウ　(b) イ　(c) カ` },
+    { q: `AB = ${s} cm のとき，線分CFの長さを求めなさい。`, a: `${qh(CF)} cm`, ex: `△ABE ∽ △FCE で相似比は BE : CE = ${m} : ${n}` },
+  ];
+  if (withG) { items.push({ q: `線分AEと対角線BDの交点をGとする。AG : GE を最も簡単な整数の比で求めなさい。`, a: ratioH(m + n, m), ex: `△AGD ∽ △EGB より AG : GE = AD : EB = ${m + n} : ${m}` }); }
+  items.push({ q: `△ECFの面積は，平行四辺形ABCDの面積の何倍か求めなさい。`, a: `${qh(ratio)} 倍`, ex: `△ABE = ${frac(m, m + n)} × ${frac(1, 2)}▱ABCD，△ECF = (${frac(n, m)})<sup>2</sup>△ABE` });
+  return { title: '図形（平行四辺形と相似）', lead: `下の図のように，平行四辺形ABCDがある。辺BC上に BE : EC = ${m} : ${n} となる点Eをとり，線分AEの延長と辺DCの延長との交点をFとする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+ZU.sankaku_heikou = () => {
+  const m = R(1, 4), n = R(1, 4); if (gcd(m, n) !== 1 || m === n && m !== 1) return null; const s = (m + n) * R(1, 3) * pick([1, 2]);
+  const Aq = [q(0), q(1)], Bq = [q(0), q(0)], Cq = [q(1), q(0)]; const r = q(m, m + n);
+  const Dq = ptQ(Aq, Bq, r), Eq = ptQ(Aq, Cq, r); const Fq = interQ(Bq, Eq, Cq, Dq);
+  const S = areaQ(Aq, Bq, Cq); const def = areaQ(Dq, Eq, Fq).div(S); const dbf = areaQ(Dq, Bq, Fq).div(S);
+  // 図（見た目用の三角形）
+  const A = [110, 20], B = [20, 180], C = [270, 180]; const t = m / (m + n);
+  const D = lerp(A, B, t), E = lerp(A, C, t), F = interLines(B, E, C, D);
+  const sv = new Svg(290, 200); sv.poly([A, B, C]).line(D[0], D[1], E[0], E[1]).line(B[0], B[1], E[0], E[1]).line(C[0], C[1], D[0], D[1]);
+  const c0 = cen([A, B, C]); sv.label(A, 'A', c0).label(B, 'B', c0).label(C, 'C', c0).text(D[0] - 12, D[1], 'D').text(E[0] + 12, E[1], 'E').text(F[0], F[1] + 14, 'F');
+  const vari = pick(['def', 'dbf']);
+  const items = [
+    { q: `△ADE ∽ △ABC となることを次のように証明した。${LET[0]}，${LET[1]} にあてはまるものを，選択肢のア〜カからそれぞれ1つずつ選び，記号で答えなさい。` + proofFill([
+      '△ADEと△ABCにおいて，', '共通な角だから，∠DAE = ∠BAC　……①', 'DE // BC より，平行線の{a}は等しいから，∠ADE = ∠ABC　……②', '①，②より，{b}がそれぞれ等しいから，△ADE ∽ △ABC'],
+    ['同位角', '錯角', '対頂角', '3組の辺の比', '2組の辺の比とその間の角', '2組の角']), a: `(a) ア　(b) カ` },
+    { q: `BC = ${s} cm のとき，線分DEの長さを求めなさい。`, a: `${qh(q(s * m, m + n))} cm` },
+    { q: `DF : FC を最も簡単な整数の比で求めなさい。`, a: ratioH(m, m + n), ex: `△FDE ∽ △FCB より DF : FC = DE : CB = ${m} : ${m + n}` },
+    vari === 'def' ? { q: `△DEFの面積は，△ABCの面積の何倍か求めなさい。`, a: `${qh(def)} 倍` } : { q: `△DBFの面積は，△ABCの面積の何倍か求めなさい。`, a: `${qh(dbf)} 倍` },
+  ];
+  return { title: '図形（三角形と平行線）', lead: `下の図のように，△ABCの辺AB上に点D，辺AC上に点Eを，DE // BC，AD : DB = ${m} : ${n} となるようにとる。また，線分BEと線分CDの交点をFとする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+ZU.en_souji = () => {
+  const p = R(2, 9), r = R(2, 9), s = R(2, 9); if ((p * r) % s || p === s || p * r / s > 14) return null; const dE = p * r / s;
+  const al = R(25, 55), th = R(70, 115); // ∠BAC = al，∠AEB = th → ∠ABD = 180−th−al
+  const be = 180 - th - al; if (be < 20) return null;
+  const cx = 130, cy = 110, rr = 90; const P = d => [cx + rr * Math.cos(d * Math.PI / 180), cy - rr * Math.sin(d * Math.PI / 180)];
+  const A = P(160), B = P(215), C = P(15), D = P(90 + R(-10, 10)); const E = interLines(A, C, B, D);
+  const sv = new Svg(260, 220); sv.circle(cx, cy, rr).line(A[0], A[1], C[0], C[1]).line(B[0], B[1], D[0], D[1]).line(A[0], A[1], B[0], B[1]).line(D[0], D[1], C[0], C[1]);
+  const c0 = [cx, cy]; sv.label(A, 'A', c0).label(B, 'B', c0).label(C, 'C', c0).label(D, 'D', c0).text(E[0], E[1] + 15, 'E');
+  const items = [
+    { q: `△ABE ∽ △DCE となることを次のように証明した。${LET[0]}〜${LET[2]} にあてはまるものを，選択肢のア〜カからそれぞれ1つずつ選び，記号で答えなさい。` + proofFill([
+      '△ABEと△DCEにおいて，', '{b}BCに対する{a}は等しいから，∠BAE = ∠CDE　……①', '{b}ADに対する{a}は等しいから，∠ABE = ∠DCE　……②', '①，②より，{c}がそれぞれ等しいから，△ABE ∽ △DCE'],
+    ['中心角', '円周角', '弧', '弦', '2組の角', '3組の辺の比']), a: `(a) イ　(b) ウ　(c) オ` },
+    { q: `AE = ${p} cm，EC = ${r} cm，BE = ${s} cm のとき，線分DEの長さを求めなさい。`, a: `${fmtDec(dE)} cm`, ex: `相似比より AE : DE = BE : CE だから DE = ${p} × ${r} ÷ ${s}` },
+    { q: `∠BAC = ${al}°，∠AEB = ${th}° のとき，∠ACDの大きさを求めなさい。`, a: `${be}°`, ex: `∠ABD = 180° − ${th}° − ${al}° = ${be}°，∠ACD = ∠ABD（弧ADに対する円周角）` },
+  ];
+  return { title: '図形（円と相似）', lead: `下の図のように，円周上に4点A，B，C，Dがあり，線分ACと線分BDの交点をEとする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+function cuboidSvg(a, b, c, labels = 'ABCDEFGH', extra) {
+  // 斜投影: 横a, 奥行b, 高さc
+  const k = 200 / Math.max(a + b * 0.55, (c + b * 0.4) * 1.2); const ax = a * k, bx = b * k * 0.55, by = b * k * 0.4, cz = c * k;
+  const o = [30, 30 + by + cz];
+  const E = o, F = [o[0] + ax, o[1]], G = [o[0] + ax + bx, o[1] - by], H = [o[0] + bx, o[1] - by];
+  const A = [E[0], E[1] - cz], B = [F[0], F[1] - cz], C = [G[0], G[1] - cz], D = [H[0], H[1] - cz];
+  const sv = new Svg(ax + bx + 70, by + cz + 60);
+  sv.poly([A, B, C, D]).line(A[0], A[1], E[0], E[1]).line(B[0], B[1], F[0], F[1]).line(C[0], C[1], G[0], G[1]).line(E[0], E[1], F[0], F[1]).line(F[0], F[1], G[0], G[1]);
+  sv.line(E[0], E[1], H[0], H[1], { dash: true }).line(H[0], H[1], G[0], G[1], { dash: true }).line(D[0], D[1], H[0], H[1], { dash: true });
+  const P = { A, B, C, D, E, F, G, H }; const off = { A: [-10, -4], B: [-9, 11], C: [9, -6], D: [-6, -9], E: [-9, 9], F: [8, 9], G: [10, 5], H: [-10, -7] };
+  Object.keys(P).forEach(key => sv.text(P[key][0] + off[key][0], P[key][1] + off[key][1], key));
+  if (extra) extra(sv, P);
+  return sv;
+}
+ZU.cuboid = () => {
+  const a = R(2, 6), b = R(2, 6), c = R(2, 6); if (a === b && b === c && R(0, 1)) return null;
+  const S = a * a * b * b + b * b * c * c + c * c * a * a; const diag = a * a + b * b + c * c;
+  const vol = q(a * b * c, 6); const [sa, sb] = sqrtSimp(S); // 距離 = abc/(sa√sb) = abc√sb/(sa·sb)
+  const dist = q(a * b * c, sa * sb); const himo = (a + b) * (a + b) + c * c;
+  const sv = cuboidSvg(a, b, c, 'ABCDEFGH', (s, P) => { s.poly([P.B, P.D, P.E], { cls: 'thin', dash: '2 2' }); });
+  const items = [
+    { q: `線分AGの長さを求めなさい。`, a: `${sqrtH(diag)} cm` },
+    { q: `三角錐ABDEの体積を求めなさい。`, a: `${qh(vol)} cm<sup>3</sup>`, ex: `${frac(1, 3)} × (${frac(1, 2)} × ${a} × ${b}) × ${c}` },
+    { q: `△BDEを底面としたときの三角錐ABDEの高さを求めなさい。`, a: `${sb === 1 ? qh(dist) : rootH(dist, sb)} cm`, ex: `△BDE の面積は ${rootH(q(sa, 2), sb)} cm<sup>2</sup>（${frac(1, 2)}${rt(`${a * b}<sup>2</sup> + ${b * c}<sup>2</sup> + ${c * a}<sup>2</sup>`)}）。体積 = ${frac(1, 3)} × 底面積 × 高さ を使う。` },
+    { q: `この直方体の表面に，頂点Aから辺BF上を通って頂点Gまで糸をかける。糸の長さが最も短くなるときの糸の長さを求めなさい。`, a: `${sqrtH(himo)} cm`, ex: `展開図で A から G まで直線をひく：${rt(`${a + b}<sup>2</sup> + ${c}<sup>2</sup>`)}` },
+  ];
+  return { title: '図形（直方体）', lead: `下の図のように，AB = ${a} cm，AD = ${b} cm，AE = ${c} cm の直方体ABCD−EFGHがある。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+ZU.ensui = () => {
+  const [r0, h0, l0] = pick([[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25], [6, 8, 10], [9, 12, 15]]); const k = pick([1, 1, 2]); const r = r0 * k, h = h0 * k, l = l0 * k;
+  const ang = q(360 * r, l); const sv = new Svg(200, 190);
+  const top = [100, 20], bl = [100 - 70 * r / Math.max(r, h) , 20 + 140 * h / Math.max(r, h)]; const s2 = 70 * r / Math.max(r, h) / 1; const base = 20 + 140 * h / Math.max(r, h);
+  const W = Math.max(40, 80 * r / Math.max(r, h)); const Hh = Math.max(60, 150 * h / Math.max(r, h));
+  const T = [100, 18], L = [100 - W, 18 + Hh], Rr = [100 + W, 18 + Hh];
+  sv.line(T[0], T[1], L[0], L[1]).line(T[0], T[1], Rr[0], Rr[1]).path(`M${L[0]},${L[1]} A${W},${W * 0.28} 0 0 0 ${Rr[0]},${Rr[1]}`).path(`M${L[0]},${L[1]} A${W},${W * 0.28} 0 0 1 ${Rr[0]},${Rr[1]}`, { dash: true });
+  sv.line(T[0], T[1], 100, L[1], { dash: true }).line(100, L[1], Rr[0], Rr[1], { dash: true }).dot(100, L[1]).text(100, L[1] + 12, 'O').text(T[0], T[1] - 9, 'A').text((100 + Rr[0]) / 2, L[1] - 8, `${r} cm`, { size: 12 }).text((T[0] + Rr[0]) / 2 + 22, (T[1] + Rr[1]) / 2, `${l} cm`, { size: 12 });
+  const items = [
+    { q: `この円錐の高さAOを求めなさい。`, a: `${h} cm` },
+    { q: `この円錐の体積を求めなさい。ただし，円周率は π とする。`, a: `${qh(q(r * r * h, 3))}π cm<sup>3</sup>` },
+    ang.isInt() ? { q: `この円錐の側面の展開図のおうぎ形の中心角の大きさを求めなさい。`, a: `${ang.n}°`, ex: `中心角 = 360° × ${frac(r, l)}` } : { q: `この円錐の側面の展開図のおうぎ形の弧の長さを求めなさい。ただし，円周率は π とする。`, a: `${2 * r}π cm`, ex: `弧の長さは底面の円周と等しい。` },
+    { q: `この円錐の表面積を求めなさい。ただし，円周率は π とする。`, a: `${r * r + r * l}π cm<sup>2</sup>`, ex: `底面 π × ${r}<sup>2</sup> ＋ 側面 π × ${l} × ${r}` },
+  ];
+  if (Number.isInteger(l / r) || R(0, 1)) { const g = gcd(l, r); items.push({ q: `この円錐を，頂点Aを中心として平面上ですべらないように転がしたところ，底面の円周が平面上にえがく円の上を1周してもとの位置にもどった。このとき，円錐は何回転したか求めなさい。`, a: `${qh(q(l, r))} 回転`, ex: `円周の比 2π×${l} : 2π×${r}` }); }
+  return { title: '図形（円錐）', lead: `下の図のように，底面の半径が ${r} cm，母線の長さが ${l} cm の円錐がある。点Oは底面の円の中心である。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+const ZU_LABEL = { heikoushihenkei: '平行四辺形と相似（延長線）', sankaku_heikou: '三角形と平行線・面積比', en_souji: '円と相似（円周角）', cuboid: '直方体（体積・最短距離）', ensui: '円錐（体積・展開図）' };
+// 三平方の定理（三角形の高さ）
+const PY = []; for (let m = 2; m < 9; m++) for (let n = 1; n < m; n++) if ((m - n) % 2 && gcd(m, n) === 1) for (let k = 1; k * (m * m + n * n) <= 41; k++) { const a = k * (m * m - n * n), b = k * 2 * m * n, c = k * (m * m + n * n); PY.push([a, b, c], [b, a, c]); }
+ZU.sanheihou = () => {
+  const h = pick(PY.map(t => t[1])); const cand = PY.filter(t => t[1] === h); if (cand.length < 2) return null;
+  const [t1, t2] = sample(cand, 2); const p = t1[0], qq = t2[0], c = t1[2], b = t2[2], a = p + qq; if (a > 30) return null;
+  const S = a * h / 2; const r = q(2 * S, a + b + c); const HI = q(h * qq, b);
+  const tf = fitPts([[0, 0], [a, 0], [p, h]], 300, 200, 26); const B = tf([0, 0]), C = tf([a, 0]), A = tf([p, h]), H = tf([p, 0]);
+  const sv = new Svg(300, 200); sv.poly([A, B, C]).line(A[0], A[1], H[0], H[1], { dash: true }).rightMark(H, C, A, 8);
+  const c0 = cen([A, B, C]); sv.label(A, 'A', c0).label(B, 'B', c0).label(C, 'C', c0).text(H[0], H[1] + 13, 'H');
+  sv.text((A[0] + B[0]) / 2 - 16, (A[1] + B[1]) / 2, `${c}cm`, { size: 11 }).text((A[0] + C[0]) / 2 + 18, (A[1] + C[1]) / 2, `${b}cm`, { size: 11 }).text((B[0] + C[0]) / 2, B[1] + 14, `${a}cm`, { size: 11 });
+  const vari = R(0, 1);
+  const items = [
+    { q: `BH = ${X} cm として，${X} についての方程式をつくりなさい。`, a: `${c}<sup>2</sup> − ${X}<sup>2</sup> = ${b}<sup>2</sup> − (${a} − ${X})<sup>2</sup>`, ex: `△ABH と △ACH で，AH<sup>2</sup> を2通りに表す。` },
+    { q: `線分BHの長さを求めなさい。`, a: `${p} cm` },
+    { q: `線分AHの長さと，△ABCの面積を求めなさい。`, a: `AH = ${h} cm，面積 ${fmtDec(S)} cm<sup>2</sup>` },
+    vari ? { q: `△ABCの3つの辺に接する円の半径を求めなさい。`, a: `${qh(r)} cm`, ex: `半径を ${V('r')} とすると ${frac(1, 2)}${V('r')}(${a} + ${b} + ${c}) = ${fmtDec(S)}` }
+      : { q: `点Hから辺ACに垂線をひき，辺ACとの交点をIとする。線分HIの長さを求めなさい。`, a: `${qh(HI)} cm`, ex: `△AHC の面積を2通りに表す：${frac(1, 2)} × ${qq} × ${h} = ${frac(1, 2)} × ${b} × HI` },
+  ];
+  return { title: '図形（三平方の定理と三角形の高さ）', lead: `下の図のように，AB = ${c} cm，BC = ${a} cm，CA = ${b} cm の△ABCがある。頂点Aから辺BCに垂線をひき，辺BCとの交点をHとする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+ZU.shikakusui = () => {
+  const a = pick([4, 6, 8, 10, 12]), l = R(a / 2 + 2, a + 6); const h2 = q(l * l).sub(a * a / 2); if (h2.v <= 0) return null; const s2 = l * l - a * a / 4;
+  const [ha, hb] = sqrtSimp(h2.n); const [sa, sb] = sqrtSimp(s2); if (hb > 1 && sb > 1 && R(0, 3)) return null;
+  const vol = q(a * a * ha, 3);
+  const sv = new Svg(240, 210); const Bq = [30, 170], Cq = [170, 170], Dq = [215, 125], Aq = [75, 125]; const Oc = [(Bq[0] + Dq[0]) / 2, (Bq[1] + Dq[1]) / 2]; const Ov = [Oc[0], 25];
+  sv.line(Bq[0], Bq[1], Cq[0], Cq[1]).line(Cq[0], Cq[1], Dq[0], Dq[1]).line(Bq[0], Bq[1], Aq[0], Aq[1], { dash: true }).line(Aq[0], Aq[1], Dq[0], Dq[1], { dash: true });
+  sv.line(Ov[0], Ov[1], Bq[0], Bq[1]).line(Ov[0], Ov[1], Cq[0], Cq[1]).line(Ov[0], Ov[1], Dq[0], Dq[1]).line(Ov[0], Ov[1], Aq[0], Aq[1], { dash: true }).line(Ov[0], Ov[1], Oc[0], Oc[1], { dash: true }).line(Aq[0], Aq[1], Cq[0], Cq[1], { dash: '2 3' }).line(Bq[0], Bq[1], Dq[0], Dq[1], { dash: '2 3' });
+  sv.text(Ov[0], Ov[1] - 10, 'O').text(Aq[0] - 10, Aq[1] - 6, 'A').text(Bq[0] - 10, Bq[1] + 6, 'B').text(Cq[0] + 4, Cq[1] + 12, 'C').text(Dq[0] + 10, Dq[1], 'D').text(Oc[0] + 9, Oc[1] + 9, 'H');
+  const items = [
+    { q: `底面の正方形の対角線ACの長さを求めなさい。`, a: `${rootH(a, 2)} cm` },
+    { q: `この正四角錐の高さOHを求めなさい。`, a: `${rootH(ha, hb)} cm`, ex: `AH = ${rootH(q(a, 2), 2)} cm，OH<sup>2</sup> = ${l}<sup>2</sup> − AH<sup>2</sup>` },
+    { q: `この正四角錐の体積を求めなさい。`, a: `${rootH(vol, hb)} cm<sup>3</sup>` },
+    { q: `この正四角錐の表面積を求めなさい。`, a: `${poly([[a * a, ''], [2 * a * sa, sb === 1 ? '' : rt(sb)]].reduce((acc, t) => { if (t[1] === '' && acc.length) { acc[0][0] += t[0]; return acc; } acc.push(t); return acc; }, []))} cm<sup>2</sup>`, ex: `側面の二等辺三角形の高さは ${rootH(sa, sb)} cm` },
+  ];
+  return { title: '図形（正四角錐）', lead: `下の図のように，底面が1辺 ${a} cm の正方形ABCDで，OA = OB = OC = OD = ${l} cm の正四角錐OABCDがある。点Hは底面の対角線の交点である。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+ZU_LABEL.sanheihou = '三平方の定理（三角形の高さ）'; ZU_LABEL.shikakusui = '正四角錐（高さ・体積・表面積）';
+ZU.goudou_sq = () => {
+  const [s, t] = R(0, 4) ? pick([[4, 3], [8, 6], [12, 5], [12, 9], [15, 8], [8, 6]]) : [R(3, 9), R(1, 2)]; if (t >= s) return null; const S2 = s * s + t * t; const [ea, eb] = sqrtSimp(S2);
+  const BG = eb === 1 ? qh(q(s * t, ea)) : rootH(q(s * t, ea * eb), eb); const area = q(s * s * s * t, 2 * S2);
+  const tf = fitPts([[0, 0], [s, s]], 230, 210, 30); const A = tf([0, s]), B = tf([0, 0]), C = tf([s, 0]), D = tf([s, s]), E = tf([t, 0]), F = tf([s, t]); const G = interLines(A, E, B, F);
+  const sv = new Svg(230, 210); sv.poly([A, B, C, D]).line(A[0], A[1], E[0], E[1]).line(B[0], B[1], F[0], F[1]);
+  const c0 = cen([A, B, C, D]); sv.label(A, 'A', c0).label(B, 'B', c0).label(C, 'C', c0).label(D, 'D', c0).text(E[0], E[1] + 13, 'E').text(F[0] + 11, F[1], 'F').text(G[0] - 4, G[1] - 11, 'G');
+  const items = [
+    { q: `△ABE ≡ △BCF となることを次のように証明した。${LET[0]}〜${LET[2]} にあてはまるものを，選択肢のア〜カからそれぞれ1つずつ選び，記号で答えなさい。` + proofFill([
+      '△ABEと△BCFにおいて，', '仮定より，BE = CF　……①', '正方形の{a}はすべて等しいから，AB = BC　……②', '正方形の{b}はすべて等しいから，∠ABE = ∠BCF = 90°　……③', '①，②，③より，{c}がそれぞれ等しいから，△ABE ≡ △BCF'],
+    ['辺', '内角', '対角線', '3組の辺', '2組の辺とその間の角', '1組の辺とその両端の角']), a: `(a) ア　(b) イ　(c) オ` },
+    { q: `∠AGBの大きさを求めなさい。`, a: `90°`, ex: `∠BAE = ∠CBF より，∠GBA + ∠GAB = ∠CBF + ∠GBA = 90°` },
+    { q: `AB = ${s} cm，BE = ${t} cm のとき，線分AEの長さを求めなさい。`, a: `${sqrtH(S2)} cm` },
+    { q: `(3)のとき，線分BGの長さを求めなさい。`, a: `${BG} cm`, ex: `△ABEの面積を2通りに表す：${frac(1, 2)} × ${s} × ${t} = ${frac(1, 2)} × AE × BG` },
+    { q: `(3)のとき，△ABGの面積を求めなさい。`, a: `${qh(area)} cm<sup>2</sup>`, ex: `△ABG ∽ △AEB で，相似比は AB : AE` },
+  ];
+  return { title: '図形（正方形と合同）', lead: `下の図のように，正方形ABCDの辺BC上に点E，辺CD上に点Fを，BE = CF となるようにとる。線分AEと線分BFの交点をGとする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+ZU.sessen = () => {
+  const [r, pa, d] = pick([[3, 4, 5], [5, 12, 13], [6, 8, 10], [8, 6, 10], [4, 3, 5], [9, 12, 15], [12, 5, 13]]); const th = R(30, 80);
+  const rr = Math.min(62, 165 / (d / r)), cx = 20 + rr, cy = 95, dd = rr * d / r; const al = Math.acos(r / d); const Pp = [cx + dd, cy];
+  const A = [cx + rr * Math.cos(al), cy - rr * Math.sin(al)], B = [cx + rr * Math.cos(al), cy + rr * Math.sin(al)];
+  const sv = new Svg(250, 190); sv.circle(cx, cy, rr).line(A[0], A[1], Pp[0], Pp[1]).line(B[0], B[1], Pp[0], Pp[1]).line(cx, cy, A[0], A[1]).line(cx, cy, B[0], B[1]).line(cx, cy, Pp[0], Pp[1], { dash: true }).dot(cx, cy);
+  sv.text(cx - 10, cy, 'O').text(A[0], A[1] - 10, 'A').text(B[0], B[1] + 13, 'B').text(Pp[0] + 9, Pp[1], 'P');
+  const AB = q(2 * r * pa, d);
+  const items = [
+    { q: `∠OAPの大きさを求めなさい。また，その理由として最も適当なものを次のア〜ウから1つ選び，記号で答えなさい。${choices(['円の接線は，接点を通る半径に垂直であるから。', '円周角は中心角の半分であるから。', '二等辺三角形の底角は等しいから。'], 1)}`, a: `90°，ア` },
+    { q: `円Oの半径が ${r} cm，OP = ${d} cm のとき，線分PAの長さを求めなさい。`, a: `${pa} cm` },
+    { q: `(2)のとき，四角形OAPBの面積を求めなさい。`, a: `${r * pa} cm<sup>2</sup>`, ex: `△OAPと△OBPは合同で，それぞれ ${frac(1, 2)} × ${r} × ${pa}` },
+    { q: `(2)のとき，線分ABの長さを求めなさい。`, a: `${qh(AB)} cm`, ex: `ABとOPの交点をHとすると，AHは直角三角形OAPの高さ：AH = ${r} × ${pa} ÷ ${d}` },
+    { q: `∠APB = ${th}° のとき，∠AOBの大きさを求めなさい。`, a: `${180 - th}°`, ex: '四角形OAPBの内角の和は360°で，∠OAP = ∠OBP = 90°' },
+  ];
+  return { title: '図形（円の接線）', lead: `下の図のように，円Oの外部の点Pから円Oに2本の接線をひき，接点をそれぞれA，Bとする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+ZU.sankakuchuu = () => {
+  const [a, b, c] = pick([[3, 4, 5], [4, 3, 5], [6, 8, 10], [8, 6, 10], [5, 12, 13], [4, 4, 0], [3, 6, 0]]); const m = R(1, 3), n = R(1, 3); if (gcd(m, n) > 1) return null; const h = (m + n) * R(2, 4);
+  const cd2 = a * a + b * b + h * h; const vol = q(a * b * h, 2); const vp = q(a * b * h * n, 6 * (m + n));
+  const AC = c ? `${c}` : sqrtH(a * a + b * b);
+  const sv = new Svg(240, 220); const A = [40, 40], B = [120, 60], C = [200, 35], D = [40, 180], E = [120, 200], F = [200, 175]; const P = lerp(A, D, m / (m + n));
+  sv.poly([A, B, C]).line(A[0], A[1], D[0], D[1]).line(B[0], B[1], E[0], E[1]).line(C[0], C[1], F[0], F[1]).line(D[0], D[1], E[0], E[1]).line(E[0], E[1], F[0], F[1]).line(D[0], D[1], F[0], F[1], { dash: true });
+  sv.line(P[0], P[1], E[0], E[1], { cls: 'thin' }).line(P[0], P[1], F[0], F[1], { cls: 'thin', dash: '3 2' }).dot(P[0], P[1]).rightMark(B, A, C, 7);
+  [[A, 'A', -10, -4], [B, 'B', 0, -12], [C, 'C', 10, -4], [D, 'D', -10, 4], [E, 'E', 0, 13], [F, 'F', 10, 4], [P, 'P', -10, 0]].forEach(([p, l, dx, dy]) => sv.text(p[0] + dx, p[1] + dy, l));
+  const surf = c ? `${a * b + h * (a + b + c)} cm<sup>2</sup>` : `${poly([[a * b + h * (a + b), ''], [h * sqrtSimp(a * a + b * b)[0], rt(sqrtSimp(a * a + b * b)[1])]])} cm<sup>2</sup>`;
+  const items = [
+    { q: `この三角柱の体積を求めなさい。`, a: `${qh(vol)} cm<sup>3</sup>` },
+    { q: `線分CDの長さを求めなさい。`, a: `${sqrtH(cd2)} cm`, ex: `AC = ${AC} cm，CD<sup>2</sup> = AC<sup>2</sup> + AD<sup>2</sup>` },
+    { q: `辺AD上に AP : PD = ${m} : ${n} となる点Pをとる。三角錐PDEFの体積を求めなさい。`, a: `${qh(vp)} cm<sup>3</sup>`, ex: `底面△DEF，高さ PD = ${h * n / (m + n)} cm` },
+    { q: `この三角柱の表面積を求めなさい。`, a: surf },
+  ];
+  return { title: '図形（三角柱）', lead: `下の図のような，∠ABC = 90°，AB = ${a} cm，BC = ${b} cm の直角三角形ABCを底面とし，AD = ${h} cm を高さとする三角柱ABC−DEFがある。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+ZU.daikei_kaiten = () => {
+  const [dx, h] = pick([[3, 4], [4, 3], [6, 8], [5, 12], [2, 3], [3, 3], [8, 6]]); const a = R(2, 6), b = a + dx;
+  const vAB = q(h * (a * a + a * b + b * b), 3); const vBC = q(3 * h * h * a + h * h * (b - a), 3);
+  const u = 150 / Math.max(b, h + 2); const Bp = [40, 30 + h * u], Ap = [40, 30], Dp = [40 + a * u, 30], Cp = [40 + b * u, 30 + h * u];
+  const sv = new Svg(230, h * u + 60); sv.poly([Ap, Bp, Cp, Dp]).rightMark(Ap, Dp, Bp, 7).rightMark(Bp, Ap, Cp, 7);
+  sv.text(Ap[0] - 10, Ap[1] - 4, 'A').text(Bp[0] - 10, Bp[1] + 6, 'B').text(Cp[0] + 8, Cp[1] + 6, 'C').text(Dp[0] + 6, Dp[1] - 8, 'D');
+  sv.text((Ap[0] + Dp[0]) / 2, Ap[1] - 10, `${a}cm`, { size: 11 }).text((Bp[0] + Cp[0]) / 2, Bp[1] + 14, `${b}cm`, { size: 11 }).text(Ap[0] - 22, (Ap[1] + Bp[1]) / 2, `${h}cm`, { size: 11 });
+  const items = [
+    { q: `台形ABCDの面積を求めなさい。`, a: `${qh(q((a + b) * h, 2))} cm<sup>2</sup>` },
+    { q: `辺CDの長さを求めなさい。`, a: `${sqrtH(dx * dx + h * h)} cm` },
+    { q: `台形ABCDを，辺ABを軸として1回転させてできる立体の体積を求めなさい。ただし，円周率は π とする。`, a: `${qh(vAB)}π cm<sup>3</sup>`, ex: `辺BAとCDの延長の交点を頂点とする2つの円錐の体積の差として求める。` },
+    { q: `台形ABCDを，辺BCを軸として1回転させてできる立体の体積を求めなさい。ただし，円周率は π とする。`, a: `${qh(vBC)}π cm<sup>3</sup>`, ex: `底面の半径 ${h} cm，高さ ${a} cm の円柱と，底面の半径 ${h} cm，高さ ${b - a} cm の円錐を合わせた立体` },
+  ];
+  return { title: '図形（台形と回転体）', lead: `下の図のように，AD // BC，∠DAB = ∠ABC = 90°，AD = ${a} cm，BC = ${b} cm，AB = ${h} cm の台形ABCDがある。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+ZU.nitoubun = () => {
+  const c = R(3, 9), b = R(3, 9); if (b === c) return null; const a = R(Math.abs(b - c) + 1, b + c - 1); const BD = q(a * c, b + c);
+  const Aq = (() => { const x = (c * c - b * b + a * a) / (2 * a); return [x, Math.sqrt(Math.max(c * c - x * x, 0.01))]; })();
+  const tf = fitPts([[0, 0], [a, 0], Aq], 280, 190, 28); const B = tf([0, 0]), C = tf([a, 0]), A = tf(Aq); const D = lerp(B, C, c / (b + c));
+  const sv = new Svg(280, 190); sv.poly([A, B, C]).line(A[0], A[1], D[0], D[1]); const c0 = cen([A, B, C]); sv.label(A, 'A', c0).label(B, 'B', c0).label(C, 'C', c0).text(D[0], D[1] + 13, 'D');
+  sv.text((A[0] + B[0]) / 2 - 14, (A[1] + B[1]) / 2, `${c}cm`, { size: 11 }).text((A[0] + C[0]) / 2 + 16, (A[1] + C[1]) / 2, `${b}cm`, { size: 11 }).text((B[0] + C[0]) / 2 - 20, B[1] + 14, `${a}cm`, { size: 11 });
+  const items = [
+    { q: `点Cを通り線分ADに平行な直線と，辺BAの延長との交点をEとする。AE = AC となることを次のように証明した。${LET[0]}〜${LET[2]} にあてはまるものを，選択肢のア〜カからそれぞれ1つずつ選び，記号で答えなさい。` + proofFill([
+      'AD // EC より，平行線の{a}は等しいから，∠BAD = ∠AEC　……①', 'AD // EC より，平行線の{b}は等しいから，∠DAC = ∠ACE　……②', '仮定より，∠BAD = ∠DAC　……③', '①，②，③より，∠AEC = ∠ACE だから，△ACEは{c}であり，AE = AC'],
+    ['同位角', '錯角', '対頂角', '正三角形', '二等辺三角形', '直角三角形']), a: `(a) ア　(b) イ　(c) オ` },
+    { q: `BD : DC を最も簡単な整数の比で求めなさい。`, a: ratioH(c, b), ex: `AD // EC より BD : DC = BA : AE = BA : AC` },
+    { q: `線分BDの長さを求めなさい。`, a: `${qh(BD)} cm` },
+    { q: `△ABDの面積は，△ABCの面積の何倍か求めなさい。`, a: `${qh(q(c, b + c))} 倍` },
+  ];
+  return { title: '図形（角の二等分線と比）', lead: `下の図のように，AB = ${c} cm，AC = ${b} cm，BC = ${a} cm の△ABCがある。∠BACの二等分線と辺BCとの交点をDとする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+Object.assign(ZU_LABEL, { goudou_sq: '正方形と合同の証明', sessen: '円の接線', sankakuchuu: '三角柱（体積・切り取った三角錐）', daikei_kaiten: '台形の回転体', nitoubun: '角の二等分線と線分の比' });
+// ===== 作図 =====
+function circInter(c1, r1, c2, r2) { const d = Math.hypot(c2[0] - c1[0], c2[1] - c1[1]); const a = (r1 * r1 - r2 * r2 + d * d) / (2 * d); const h = Math.sqrt(Math.max(r1 * r1 - a * a, 0)); const m = [c1[0] + a * (c2[0] - c1[0]) / d, c1[1] + a * (c2[1] - c1[1]) / d]; return [[m[0] + h * (c2[1] - c1[1]) / d, m[1] - h * (c2[0] - c1[0]) / d], [m[0] - h * (c2[1] - c1[1]) / d, m[1] + h * (c2[0] - c1[0]) / d]]; }
+function lineCirc(c, r, a, b) { const F = foot(c, a, b); const d = Math.hypot(F[0] - c[0], F[1] - c[1]); const h = Math.sqrt(Math.max(r * r - d * d, 0)); const u = unit(a, b); return [[F[0] - u[0] * h, F[1] - u[1] * h], [F[0] + u[0] * h, F[1] + u[1] * h]]; }
+function pbArcs(sv, A, B) { const r = dist(A, B) * 0.72; circInter(A, r, B, r).forEach(X => { arcMark(sv, A, r, X, 0.18); arcMark(sv, B, r, X, 0.18); }); }
+const dist = (p, r) => Math.hypot(p[0] - r[0], p[1] - r[1]);
+const foot = (p, a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1]; const t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy); return [a[0] + dx * t, a[1] + dy * t]; };
+const rot = (p, c, th) => { const s = Math.sin(th), co = Math.cos(th); const dx = p[0] - c[0], dy = p[1] - c[1]; return [c[0] + dx * co + dy * s, c[1] - dx * s + dy * co]; }; // 画面上で反時計回り
+function perpBisPts(a, b, L = 400) { const m = lerp(a, b, 0.5); const d = unit(a, b); return [[m[0] - d[1] * L, m[1] + d[0] * L], [m[0] + d[1] * L, m[1] - d[0] * L]]; }
+function clipSeg(sv, p, q2, o, W, H) { // 線分をSVG枠内に描く（単純に長い線を引き，viewBoxで切る）
+  sv.line(p[0], p[1], q2[0], q2[1], o); }
+function arcMark(sv, c, r, towards, span = 0.35) { const t = Math.atan2(towards[1] - c[1], towards[0] - c[0]); const s = [c[0] + r * Math.cos(t - span), c[1] + r * Math.sin(t - span)], e = [c[0] + r * Math.cos(t + span), c[1] + r * Math.sin(t + span)]; sv.path(`M${f(s[0])},${f(s[1])} A${f(r)},${f(r)} 0 0 1 ${f(e[0])},${f(e[1])}`, { cls: 'cons' }); }
+ZU.sakuzu = () => {
+  const t = pick(['bis', 'pb_line', 'height', 'circum', 'tangent', 'rotate']);
+  const W = 300, H = 220; const mk = () => new Svg(W, H, 'sakuzu');
+  const tri = () => { let A, B, C; do { A = [R(90, 210), R(25, 70)]; B = [R(25, 90), R(160, 200)]; C = [R(200, 280), R(150, 200)]; } while (Math.abs((B[0] - A[0]) * (C[1] - A[1]) - (C[0] - A[0]) * (B[1] - A[1])) < 9000); return [A, B, C]; };
+  const drawTri = (sv, [A, B, C]) => { sv.poly([A, B, C]); const c0 = cen([A, B, C]); sv.label(A, 'A', c0).label(B, 'B', c0).label(C, 'C', c0); };
+  let q0, fig, ans, steps;
+  if (t === 'bis') {
+    const T = tri(); const [A, B, C] = T; const P = lerp(A, C, dist(B, A) / (dist(B, A) + dist(B, C)));
+    fig = mk(); drawTri(fig, T); ans = mk(); drawTri(ans, T);
+    const r = 34; const u1 = unit(B, A), u2 = unit(B, C); const E1 = [B[0] + u1[0] * r, B[1] + u1[1] * r], E2 = [B[0] + u2[0] * r, B[1] + u2[1] * r]; arcMark(ans, B, r, P, 0.9); const r2 = dist(E1, E2) * 0.8; const Xs = circInter(E1, r2, E2, r2); const X = Xs.sort((p1, p2) => dist(p2, B) - dist(p1, B))[0]; arcMark(ans, E1, r2, X, 0.25); arcMark(ans, E2, r2, X, 0.25);
+    const far = lerp(B, P, 1.15); ans.line(B[0], B[1], far[0], far[1], { cls: 'cons' }).dot(P[0], P[1]).text(P[0] + 10, P[1] - 8, 'P');
+    q0 = `下の図の△ABCで，辺AC上にあって，辺BA，BCから等しい距離にある点Pを作図によって求めなさい。また，点Pの位置を示す文字Pも書きなさい。`;
+    steps = '∠ABCの二等分線を作図し，辺ACとの交点をPとする。（①点Bを中心とする円をかき，辺BA，BCとの交点をとる。②その2点を中心として等しい半径の円をかき，交点をとる。③点Bとその交点を通る直線をひく。）';
+  } else if (t === 'pb_line') {
+    const y0 = 180; const A = [R(40, 120), R(30, 90)], B = [R(170, 260), R(40, 130)]; const [p1, p2] = perpBisPts(A, B); const P = interLines(p1, p2, [0, y0], [W, y0]); if (P[0] < 25 || P[0] > W - 25) return null;
+    fig = mk(); fig.line(10, y0, W - 10, y0).text(W - 6, y0 - 8, 'ℓ', { size: 14 }).dot(A[0], A[1]).text(A[0], A[1] - 10, 'A').dot(B[0], B[1]).text(B[0], B[1] - 10, 'B');
+    ans = mk(); ans.line(10, y0, W - 10, y0).text(W - 6, y0 - 8, 'ℓ', { size: 14 }).dot(A[0], A[1]).text(A[0], A[1] - 10, 'A').dot(B[0], B[1]).text(B[0], B[1] - 10, 'B');
+    const m = lerp(A, B, 0.5); pbArcs(ans, A, B);
+    const e1 = lerp(m, P, -0.8), e2 = lerp(m, P, 1.1); ans.line(e1[0], e1[1], e2[0], e2[1], { cls: 'cons' }).dot(P[0], P[1]).text(P[0] + 10, P[1] + 12, 'P');
+    q0 = `下の図のように，直線 ℓ と2点A，Bがある。直線 ℓ 上にあって，2点A，Bから等しい距離にある点Pを作図によって求めなさい。また，点Pの位置を示す文字Pも書きなさい。`;
+    steps = '線分ABの垂直二等分線を作図し，直線 ℓ との交点をPとする。（2点A，Bを中心として等しい半径の円をかき，その2つの交点を通る直線をひく。）';
+  } else if (t === 'height') {
+    const T = tri(); const [A, B, C] = T; const Hh = foot(A, B, C); if (Hh[0] < B[0] + 8 || Hh[0] > C[0] - 8) return null;
+    fig = mk(); drawTri(fig, T); ans = mk(); drawTri(ans, T);
+    const r = dist(A, Hh) * 1.25; const [I1, I2] = lineCirc(A, r, B, C); arcMark(ans, A, r, I1, 0.1); arcMark(ans, A, r, I2, 0.1); const Xr = [2 * Hh[0] - A[0], 2 * Hh[1] - A[1]]; const r3 = dist(I1, Xr); if (Xr[1] > H - 4) return null; arcMark(ans, I1, r3, Xr, 0.15); arcMark(ans, I2, r3, Xr, 0.15); const ext = lerp(A, Hh, 1.25); ans.line(A[0], A[1], ext[0], ext[1], { cls: 'cons' }).dot(Hh[0], Hh[1]).text(Hh[0] + 9, Hh[1] + 12, 'H').rightMark(Hh, C, A, 7);
+    q0 = `下の図の△ABCで，辺BCを底辺とするときの高さAHを作図によって求めなさい。また，点Hの位置を示す文字Hも書きなさい。`;
+    steps = '点Aから辺BCへの垂線を作図し，辺BCとの交点をHとする。（①点Aを中心とする円をかき，直線BCとの2つの交点をとる。②その2点を中心として等しい半径の円をかき，交点をとる。③点Aとその交点を通る直線をひく。）';
+  } else if (t === 'circum') {
+    const T = tri(); const [A, B, C] = T; const [a1, a2] = perpBisPts(A, B), [b1, b2] = perpBisPts(B, C); const O = interLines(a1, a2, b1, b2); if (O[1] < 10 || O[1] > H - 10) return null;
+    fig = mk(); drawTri(fig, T); ans = mk(); drawTri(ans, T);
+    const mAB = lerp(A, B, 0.5), mBC = lerp(B, C, 0.5); const x1 = lerp(mAB, O, -0.4), x2 = lerp(mAB, O, 1.3), y1 = lerp(mBC, O, -0.4), y2 = lerp(mBC, O, 1.3);
+    pbArcs(ans, A, B); pbArcs(ans, B, C); ans.line(x1[0], x1[1], x2[0], x2[1], { cls: 'cons' }).line(y1[0], y1[1], y2[0], y2[1], { cls: 'cons' }).dot(O[0], O[1]).text(O[0] + 10, O[1] - 6, 'O'); ans.circle(O[0], O[1], dist(O, A), { cls: 'cons', dash: '2 3' });
+    q0 = `下の図の△ABCで，3つの頂点A，B，Cを通る円の中心Oを作図によって求めなさい。また，点Oの位置を示す文字Oも書きなさい。`;
+    steps = '辺ABの垂直二等分線と，辺BCの垂直二等分線を作図し，その交点をOとする。';
+  } else if (t === 'tangent') {
+    const y0 = 185; const P = [R(90, 190), y0]; const A = [P[0] + R(-80, 80), R(40, 110)]; if (Math.abs(A[0] - P[0]) < 25) return null;
+    const [p1, p2] = perpBisPts(P, A); const O = interLines(p1, p2, P, [P[0], 0]); const r = dist(O, P); if (O[1] - r < 5) return null;
+    fig = mk(); fig.line(10, y0, W - 10, y0).text(W - 6, y0 - 8, 'ℓ', { size: 14 }).dot(P[0], P[1]).text(P[0], P[1] + 13, 'P').dot(A[0], A[1]).text(A[0], A[1] - 10, 'A');
+    ans = mk(); ans.line(10, y0, W - 10, y0).text(W - 6, y0 - 8, 'ℓ', { size: 14 }).dot(P[0], P[1]).text(P[0], P[1] + 13, 'P').dot(A[0], A[1]).text(A[0], A[1] - 10, 'A');
+    ans.line(P[0], P[1] + 10, P[0], 5, { cls: 'cons' }); pbArcs(ans, P, A); const m = lerp(P, A, 0.5); const e1 = lerp(m, O, -1), e2 = lerp(m, O, 1.6); ans.line(e1[0], e1[1], e2[0], e2[1], { cls: 'cons' }).dot(O[0], O[1]).text(O[0] + 10, O[1] - 6, 'O').circle(O[0], O[1], r, { cls: 'cons', dash: '2 3' });
+    q0 = `下の図のように，直線 ℓ と，ℓ 上の点P，ℓ 上にない点Aがある。点Pで直線 ℓ に接し，点Aを通る円の中心Oを作図によって求めなさい。また，点Oの位置を示す文字Oも書きなさい。`;
+    steps = '点Pを通る直線 ℓ の垂線と，線分PAの垂直二等分線を作図し，その交点をOとする。（接線は接点を通る半径に垂直であり，中心OはP，Aから等しい距離にあるため。）';
+  } else {
+    const T = tri().map(p => [p[0] * 0.45 + 150, p[1] * 0.45 + 20]); const O = [R(90, 150), R(110, 170)]; const th = pick([60, 80, 90, 100, 120]) * Math.PI / 180;
+    const T2 = T.map(p => rot(p, O, th)); if (T2.some(p => p[0] < 10 || p[0] > W - 10 || p[1] < 10 || p[1] > H - 10)) return null;
+    const lab = (sv, pts, names) => { sv.poly(pts); const c0 = cen(pts); pts.forEach((p, i) => sv.label(p, names[i], c0, 11)); };
+    fig = mk(); lab(fig, T, ['A', 'B', 'C']); lab(fig, T2, ["A′", "B′", "C′"]); ans = mk(); lab(ans, T, ['A', 'B', 'C']); lab(ans, T2, ["A′", "B′", "C′"]);
+    [[T[0], T2[0]], [T[1], T2[1]]].forEach(([p, p2]) => { pbArcs(ans, p, p2); const m = lerp(p, p2, 0.5); const e1 = lerp(m, O, -0.5), e2 = lerp(m, O, 1.3); ans.line(e1[0], e1[1], e2[0], e2[1], { cls: 'cons' }).line(p[0], p[1], p2[0], p2[1], { cls: 'cons', dash: '2 3' }); });
+    ans.dot(O[0], O[1]).text(O[0] + 10, O[1] + 10, 'O');
+    q0 = `下の図の△A′B′C′は，△ABCをある点Oを回転の中心として回転移動させたものである。回転の中心Oを作図によって求めなさい。また，点Oの位置を示す文字Oも書きなさい。`;
+    steps = '線分AA′の垂直二等分線と，線分BB′の垂直二等分線を作図し，その交点をOとする。（回転の中心は，対応する2点から等しい距離にあるため。）';
+  }
+  return { title: '作図', lead: `${q0}<br>ただし，三角定規の角を利用して直線をひくことはしないものとし，作図に用いた線は消さずに残しておくこと。`, fig: fig.toString(), items: [{ q: '上の図に作図しなさい。（解答例は「答えを表示」で見られます）', a: `<div class="ansfig">${ans.toString()}</div>`, ex: steps }] };
+};
+ZU_LABEL.sakuzu = '作図（二等分線・垂線・円の中心・回転の中心）';
+ZU.ensui_kyuu = () => {
+  const [r0, h0, l0] = pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15], [7, 24, 25], [12, 16, 20]]); const r = r0, h = h0, l = l0;
+  const rin = q(r * h, r + l); const Vc = q(r * r * h, 3); const Vs = rin.mul(rin).mul(rin).mul(4).div(3);
+  const k = pick([2, 3]); // 高さを k 等分した位置で切る（上から1/k）
+  const small = Vc.div(k * k * k), frus = Vc.sub(small);
+  const W = 240, u = 150 / Math.max(2 * r, h); const T = [W / 2, 20], L = [W / 2 - r * u, 20 + h * u], Rr = [W / 2 + r * u, 20 + h * u]; const ri = rin.v * u; const Oc = [W / 2, L[1] - ri];
+  const sv = new Svg(W, h * u + 40); sv.poly([T, L, Rr]).circle(Oc[0], Oc[1], ri).line(T[0], T[1], W / 2, L[1], { dash: true }).dot(W / 2, L[1]).text(T[0], T[1] - 9, 'A').text(L[0] - 10, L[1] + 6, 'B').text(Rr[0] + 10, Rr[1] + 6, 'C').text(W / 2 + 8, L[1] + 12, 'H').dot(Oc[0], Oc[1]).text(Oc[0] + 9, Oc[1] - 3, 'O');
+  const items = [
+    { q: `円錐の高さAHを求めなさい。`, a: `${h} cm` },
+    { q: `円錐の体積を求めなさい。ただし，円周率は π とする。`, a: `${qh(Vc)}π cm<sup>3</sup>` },
+    { q: `円錐の中に，円錐の底面と側面にぴったりと接する球Oが入っている。図は，この立体を頂点Aと底面の円の中心Hを通る平面で切ったときの切り口である。球Oの半径を求めなさい。`, a: `${qh(rin)} cm`, ex: `切り口の△ABCの内接円の半径。△ABCの面積 ${r * h} = ${frac(1, 2)} × 半径 × (${l} + ${l} + ${2 * r})` },
+    { q: `(3)の球Oの体積を求めなさい。ただし，円周率は π とする。`, a: `${qh(Vs)}π cm<sup>3</sup>` },
+    { q: `もとの円錐を，底面に平行な平面で，高さAHを頂点Aから 1 : ${k - 1} に分ける点を通るように切る。切り取られた2つの立体のうち，底面をふくむ方の立体の体積を求めなさい。ただし，円周率は π とする。`, a: `${qh(frus)}π cm<sup>3</sup>`, ex: `上の小さい円錐はもとの円錐と相似で，相似比 1 : ${k}，体積比 1 : ${k ** 3}` },
+  ];
+  return { title: '図形（円錐と球・切断）', lead: `底面の半径が ${r} cm，母線の長さが ${l} cm の円錐がある。点Aは円錐の頂点，点Hは底面の円の中心である。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+ZU.cube_cut = () => {
+  const s = pick([2, 3, 4, 6]); const V = s ** 3; const vt = q(V, 6);
+  const sv = cuboidSvg(s, s, s, 'ABCDEFGH', (g, P) => { g.poly([P.B, P.D, P.E], { fill: 'var(--shade)' }); g.poly([P.B, P.D, P.E], { cls: 'thin' }); });
+  const [a1, b1] = sqrtSimp(2 * s * s); // BD = s√2
+  const area = q(s * s, 2); // (√3/4)(s√2)^2 = (√3/2)s²
+  const h = q(s, 3); // s/√3 = s√3/3
+  const M = pick(['辺AEの中点M', '辺AB上の AM : MB = 1 : 2 となる点M']); const ratioM = M.includes('中点') ? q(1, 2) : q(1, 3);
+  const vM = q(V, 6).mul(ratioM); // 三角錐MBD? → 三角錐 M-ABD (底面ABD, 高さ AM) 
+  const items = [
+    { q: `三角錐ABDEの体積を求めなさい。`, a: `${qh(vt)} cm<sup>3</sup>` },
+    { q: `立方体から三角錐ABDEを切り取った残りの立体の体積を求めなさい。`, a: `${qh(q(V * 5, 6))} cm<sup>3</sup>` },
+    { q: `△BDEはどのような三角形か答えなさい。また，その面積を求めなさい。`, a: `正三角形，${rootH(area.mul(1), 3)} cm<sup>2</sup>`, ex: `BD = DE = EB = ${rootH(a1, b1)} cm（正方形の対角線）` },
+    { q: `△BDEを底面としたときの，三角錐ABDEの高さを求めなさい。`, a: `${rootH(h, 3)} cm`, ex: `体積 ${qh(vt)} = ${frac(1, 3)} × △BDE × 高さ` },
+  ];
+  return { title: '図形（立方体の切断）', lead: `下の図のように，1辺が ${s} cm の立方体ABCD−EFGHがある。この立方体を，3つの頂点B，D，Eを通る平面で切る。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+Object.assign(ZU_LABEL, { ensui_kyuu: '円錐と球（内接球・平行な平面で切る）', cube_cut: '立方体の切断（B，D，Eを通る平面）' });
+ZU.chuuten = () => {
+  let A, B, C, D; do { A = [R(20, 110), R(20, 70)]; B = [R(10, 60), R(130, 190)]; C = [R(170, 250), R(140, 200)]; D = [R(200, 270), R(20, 90)]; } while (false);
+  const E = lerp(A, B, 0.5), F = lerp(B, C, 0.5), G = lerp(C, D, 0.5), H = lerp(D, A, 0.5);
+  const sv = new Svg(280, 210); sv.poly([A, B, C, D]).poly([E, F, G, H], { fill: 'var(--shade)' }).poly([A, B, C, D]).line(A[0], A[1], C[0], C[1], { dash: true }); const c0 = cen([A, B, C, D]);
+  [[A, 'A'], [B, 'B'], [C, 'C'], [D, 'D'], [E, 'E'], [F, 'F'], [G, 'G'], [H, 'H']].forEach(([p, l]) => sv.label(p, l, c0, 12));
+  const p = R(6, 16), qq = R(6, 16); const S = R(10, 40) * 2;
+  const items = [
+    { q: `四角形EFGHが平行四辺形になることを次のように証明した。${LET[0]}〜${LET[2]} にあてはまるものを，選択肢のア〜カからそれぞれ1つずつ選び，記号で答えなさい。` + proofFill([
+      '△ABCで，点E，Fはそれぞれ辺AB，BCの中点だから，{a}より，EF // AC，EF = ½AC　……①', '△ACDで，点H，Gはそれぞれ辺AD，CDの中点だから，同様に，HG // {b}，HG = ½{b}　……②', '①，②より，EF // HG，EF = HG', '{c}から，四角形EFGHは平行四辺形である。'],
+    ['中点連結定理', '三平方の定理', 'AC', 'BD', '2組の対辺がそれぞれ等しい', '1組の対辺が平行でその長さが等しい']), a: `(a) ア　(b) ウ　(c) カ` },
+    { q: `AC = ${p} cm，BD = ${qq} cm のとき，四角形EFGHの周の長さを求めなさい。`, a: `${p + qq} cm`, ex: `EF = HG = ${fmtDec(p / 2)} cm，EH = FG = ${fmtDec(qq / 2)} cm` },
+    { q: `四角形ABCDの対角線AC，BDがどのような条件を満たすとき，四角形EFGHはひし形になるか答えなさい。`, a: `AC = BD（対角線の長さが等しい）` },
+    { q: `四角形ABCDの対角線AC，BDがどのような条件を満たすとき，四角形EFGHは長方形になるか答えなさい。`, a: `AC ⊥ BD（対角線が垂直に交わる）` },
+    { q: `四角形ABCDの面積が ${S} cm<sup>2</sup> のとき，四角形EFGHの面積を求めなさい。`, a: `${S / 2} cm<sup>2</sup>`, ex: '四すみの4つの三角形の面積の和は，四角形ABCDの面積の半分になる。' },
+  ];
+  return { title: '図形（中点連結定理）', lead: `下の図のように，四角形ABCDの辺AB，BC，CD，DAの中点をそれぞれE，F，G，Hとする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+ZU.ougi = () => {
+  const t = R(0, 2); const a = pick([4, 6, 8, 10, 12]); const u = 150 / a; const sv = new Svg(200, 190); const O = [25, 20]; const A = O, B = [O[0], O[1] + a * u], C = [O[0] + a * u, O[1] + a * u], D = [O[0] + a * u, O[1]];
+  let lead, area, peri, why;
+  if (t === 0) { // レンズ
+    const rr = a * u; sv.poly([A, B, C, D]).path(`M${B[0]},${B[1]} A${rr},${rr} 0 0 0 ${D[0]},${D[1]} A${rr},${rr} 0 0 0 ${B[0]},${B[1]} Z`, { fill: 'var(--shade)' });
+    lead = `1辺が ${a} cm の正方形ABCDの内部に，頂点A，Cをそれぞれ中心とし，半径が ${a} cm で中心角が90°のおうぎ形の弧BDをかいた。図の色のついた部分は，2つの弧で囲まれた部分である。`;
+    area = poly([[a * a / 2, 'π'], [-a * a, '']]); peri = `${a}π`; why = `おうぎ形2つ分の面積から正方形の面積をひく：${frac(1, 4)}π × ${a}<sup>2</sup> × 2 − ${a}<sup>2</sup>`;
+  } else if (t === 1) { // 正方形 - 四分円
+    sv.poly([A, B, C, D], { fill: 'var(--shade)' }).path(`M${D[0]},${D[1]} A${a * u},${a * u} 0 0 1 ${B[0]},${B[1]} L${A[0]},${A[1]} Z`, { fill: 'var(--paper)' }).poly([A, B, C, D]);
+    lead = `1辺が ${a} cm の正方形ABCDの内部に，頂点Aを中心とし，半径が ${a} cm で中心角が90°のおうぎ形ABDをかいた。図の色のついた部分は，正方形からおうぎ形を除いた部分である。`;
+    area = poly([[a * a, ''], [q(-a * a, 4), 'π']]); peri = poly([[2 * a, ''], [q(a, 2), 'π']]); why = `${a}<sup>2</sup> − ${frac(1, 4)}π × ${a}<sup>2</sup>`;
+  } else { // 正方形と内接円
+    sv.poly([A, B, C, D], { fill: 'var(--shade)' }).circle((A[0] + C[0]) / 2, (A[1] + C[1]) / 2, a * u / 2, { fill: 'var(--paper)' }).poly([A, B, C, D]);
+    lead = `1辺が ${a} cm の正方形ABCDの内部に，正方形の4つの辺に接する円をかいた。図の色のついた部分は，正方形から円を除いた部分である。`;
+    area = poly([[a * a, ''], [q(-a * a, 4), 'π']]); peri = poly([[4 * a, ''], [a, 'π']]); why = `${a}<sup>2</sup> − π × ${a / 2}<sup>2</sup>`;
+  }
+  const c0 = cen([A, B, C, D]); sv.label(A, 'A', c0).label(B, 'B', c0).label(C, 'C', c0).label(D, 'D', c0);
+  const items = [
+    { q: `半径 ${a} cm，中心角90°のおうぎ形の弧の長さを求めなさい。ただし，円周率は π とする。`, a: `${qh(q(a, 2))}π cm` },
+    { q: `図の色のついた部分の面積を求めなさい。ただし，円周率は π とする。`, a: `(${area}) cm<sup>2</sup>`, ex: why },
+    { q: `図の色のついた部分のまわりの長さを求めなさい。ただし，円周率は π とする。`, a: `(${peri}) cm`.replace(`(${a}π)`, `${a}π`) },
+  ];
+  return { title: '図形（おうぎ形を組み合わせた図形）', lead: `${lead}<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+ZU.nitouhen = () => {
+  const al = pick([36, 40, 44, 48, 50, 52, 56, 60, 64, 70]); const base = (180 - al) / 2; const be = R(10, Math.floor(base) - 8); const pbc = base - be; const bpc = 180 - 2 * pbc;
+  const A = [140, 20], B = [50, 190], C = [230, 190]; const r = 0.55; const D = lerp(A, B, r), E = lerp(A, C, r); const P = interLines(B, E, C, D);
+  const sv = new Svg(280, 210); sv.poly([A, B, C]).line(B[0], B[1], E[0], E[1]).line(C[0], C[1], D[0], D[1]); const c0 = cen([A, B, C]); sv.label(A, 'A', c0).label(B, 'B', c0).label(C, 'C', c0).text(D[0] - 12, D[1], 'D').text(E[0] + 12, E[1], 'E').text(P[0], P[1] + 14, 'P');
+  const items = [
+    { q: `△ABE ≡ △ACD となることを次のように証明した。${LET[0]}〜${LET[2]} にあてはまるものを，選択肢のア〜カからそれぞれ1つずつ選び，記号で答えなさい。` + proofFill([
+      '△ABEと△ACDにおいて，', '仮定より，AB = AC　……①，AE = AD　……②', '{a}だから，∠BAE = ∠CAD　……③', '①，②，③より，{b}がそれぞれ等しいから，△ABE ≡ △ACD', 'したがって，合同な図形の対応する{c}は等しいから，BE = CD'],
+    ['共通な角', '対頂角', '2組の辺とその間の角', '1組の辺とその両端の角', '辺', '角']), a: `(a) ア　(b) ウ　(c) オ` },
+    { q: `∠BAC = ${al}°，∠ABE = ${be}° のとき，∠PBCの大きさを求めなさい。`, a: `${pbc}°`, ex: `∠ABC = (180° − ${al}°) ÷ 2 = ${base}°` },
+    { q: `(2)のとき，∠BPCの大きさを求めなさい。`, a: `${bpc}°`, ex: `△ABE ≡ △ACD より ∠ACD = ∠ABE なので，∠PCB = ∠PBC = ${pbc}°` },
+    { q: `△PBCはどのような三角形か答えなさい。`, a: `PB = PC の二等辺三角形` },
+  ];
+  return { title: '図形（二等辺三角形と合同）', lead: `下の図のように，AB = AC の二等辺三角形ABCの辺AB，AC上に，AD = AE となるようにそれぞれ点D，Eをとる。線分BEと線分CDの交点をPとする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+Object.assign(ZU_LABEL, { chuuten: '中点連結定理（平行四辺形の証明）', ougi: 'おうぎ形を組み合わせた図形', nitouhen: '二等辺三角形と合同の証明' });
+ZU.touei = () => {
+  const t = pick(['entyuu', 'ensui', 'sikakusui', 'sankakuchuu', 'kyuu']);
+  const sv = new Svg(240, 250); const cx = 120; sv.line(20, 125, 220, 125, { cls: 'thin' }); sv.text(222, 70, '(立面図)', { size: 10, anchor: 'end' }).text(222, 238, '(平面図)', { size: 10, anchor: 'end' });
+  let name, V, S, dims, vEx = '', sEx = '';
+  if (t === 'entyuu') { const r = R(2, 6), h = R(3, 10); const w = 70, hh = 80 * Math.min(1, h / (2 * r) * 0.9 + 0.3); sv.rect(cx - w / 2, 110 - hh, w, hh).circle(cx, 185, w / 2).dot(cx, 185, 2); sv.text(cx, 110 - hh - 8, `${2 * r}cm`, { size: 11 }).text(cx + w / 2 + 20, 110 - hh / 2, `${h}cm`, { size: 11 });
+    name = '円柱'; V = `${r * r * h}π cm<sup>3</sup>`; S = `${2 * r * r + 2 * r * h}π cm<sup>2</sup>`; dims = `立面図は縦 ${h} cm，横 ${2 * r} cm の長方形，平面図は直径 ${2 * r} cm の円`; vEx = `π × ${r}<sup>2</sup> × ${h}`; sEx = `底面 π × ${r}<sup>2</sup> × 2 ＋ 側面 ${h} × 2π × ${r}`; }
+  else if (t === 'ensui') { const [r, h, l] = pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [4, 3, 5], [9, 12, 15]]); const w = 76, hh = 85 * Math.min(1, h / (2 * r) + 0.2); sv.poly([[cx, 110 - hh], [cx - w / 2, 110], [cx + w / 2, 110]]).circle(cx, 185, w / 2).dot(cx, 185, 2); sv.text(cx, 118, `${2 * r}cm`, { size: 11 }).text(cx + w / 4 + 20, 110 - hh / 2, `${l}cm`, { size: 11 });
+    name = '円錐'; V = `${qh(q(r * r * h, 3))}π cm<sup>3</sup>`; S = `${r * r + r * l}π cm<sup>2</sup>`; dims = `立面図は底辺 ${2 * r} cm，等しい2辺が ${l} cm の二等辺三角形，平面図は直径 ${2 * r} cm の円`; vEx = `高さは ${rt(`${l}<sup>2</sup> − ${r}<sup>2</sup>`)} = ${h} cm`; sEx = `底面 π × ${r}<sup>2</sup> ＋ 側面 π × ${l} × ${r}`; }
+  else if (t === 'sikakusui') { const [hb, h, s2] = pick([[3, 4, 5], [4, 3, 5], [6, 8, 10], [5, 12, 13], [8, 6, 10]]); const a = 2 * hb; const w = 76, hh = 85 * Math.min(1, h / a + 0.2); sv.poly([[cx, 110 - hh], [cx - w / 2, 110], [cx + w / 2, 110]]).line(cx, 110 - hh, cx, 110, { dash: true }).rect(cx - w / 2, 147, w, w).line(cx - w / 2, 147, cx + w / 2, 147 + w).line(cx + w / 2, 147, cx - w / 2, 147 + w);
+    sv.text(cx, 118, `${a}cm`, { size: 11 }).text(cx + 12, 110 - hh / 2, `${h}cm`, { size: 11, anchor: 'start' });
+    name = '正四角錐'; V = `${qh(q(a * a * h, 3))} cm<sup>3</sup>`; S = `${a * a + 2 * a * s2} cm<sup>2</sup>`; dims = `立面図は底辺 ${a} cm，高さ ${h} cm の二等辺三角形，平面図は1辺 ${a} cm の正方形`; vEx = `${frac(1, 3)} × ${a}<sup>2</sup> × ${h}`; sEx = `側面の三角形の高さは ${rt(`${h}<sup>2</sup> + ${hb}<sup>2</sup>`)} = ${s2} cm`; }
+  else if (t === 'sankakuchuu') { const [a, b, c] = pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [4, 3, 5]]); const h = R(3, 10); const w = 80, hh = 70; sv.rect(cx - w / 2, 110 - hh, w, hh).poly([[cx - w / 2, 205], [cx - w / 2, 145], [cx + w / 2, 205]]).rightMark([cx - w / 2, 205], [cx + w / 2, 205], [cx - w / 2, 145], 7);
+    sv.text(cx + w / 2 + 18, 110 - hh / 2, `${h}cm`, { size: 11 }).text(cx - w / 2 - 16, 175, `${a}cm`, { size: 11 }).text(cx, 216, `${b}cm`, { size: 11 });
+    name = '三角柱'; V = `${a * b * h / 2} cm<sup>3</sup>`; S = `${a * b + h * (a + b + c)} cm<sup>2</sup>`; dims = `立面図は高さ ${h} cm の長方形，平面図は直角をはさむ2辺が ${a} cm，${b} cm の直角三角形`; vEx = `${frac(1, 2)} × ${a} × ${b} × ${h}`; sEx = `底面2つ ${a * b} ＋ 側面 ${h} × (${a} + ${b} + ${c})`; }
+  else { const r = R(2, 6); sv.circle(cx, 70, 40).circle(cx, 185, 40).line(cx - 40, 70, cx + 40, 70, { dash: true }).text(cx, 62, `${2 * r}cm`, { size: 11 });
+    name = '球'; V = `${qh(q(4 * r ** 3, 3))}π cm<sup>3</sup>`; S = `${4 * r * r}π cm<sup>2</sup>`; dims = `立面図，平面図がどちらも直径 ${2 * r} cm の円`; vEx = `${frac(4, 3)}π × ${r}<sup>3</sup>`; sEx = `4π × ${r}<sup>2</sup>`; }
+  const opts = shuffle(['円柱', '円錐', '正四角錐', '三角柱', '球', '四角柱'].filter(x => x !== name)).slice(0, 3).concat(name); const ch = shuffle(opts);
+  return { title: '図形（投影図）', lead: `下の図は，ある立体の投影図である。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items: [
+    { q: `この立体の名前として正しいものを，次のア〜エから1つ選び，記号で答えなさい。${choices(ch)}`, a: `${KANA[ch.indexOf(name)]}（${name}）` },
+    { q: `この立体の体積を求めなさい。${/π/.test(V) ? 'ただし，円周率は π とする。' : ''}`, a: V, ex: vEx },
+    { q: `この立体の表面積を求めなさい。${/π/.test(S) ? 'ただし，円周率は π とする。' : ''}`, a: S, ex: sEx },
+  ] };
+};
+// 立方体の展開図
+const NETS = (() => { const N = []; [[0, 0], [0, 1], [0, 2], [0, 3], [1, 1], [1, 2]].forEach(([a, b]) => N.push([[a, 0], [0, 1], [1, 1], [2, 1], [3, 1], [b, 2]]));
+  [1, 2, 3].forEach(x => N.push([[0, 0], [1, 0], [1, 1], [2, 1], [3, 1], [x, 2]])); N.push([[0, 0], [1, 0], [1, 1], [2, 1], [2, 2], [3, 2]]); N.push([[0, 0], [1, 0], [2, 0], [2, 1], [3, 1], [4, 1]]); return N; })();
+function foldNet(cells) { // 各セルに立方体の面番号(0下 1上 2北 3南 4東 5西)を割り当てる
+  const key = c => c.join(','); const set = new Map(cells.map((c, i) => [key(c), i])); const face = Array(cells.length).fill(-1);
+  const roll = (s, d) => { const { B, T, N, S, E, W } = s; if (d === 'E') return { B: E, T: W, N, S, E: T, W: B }; if (d === 'W') return { B: W, T: E, N, S, E: B, W: T }; if (d === 'N') return { B: N, T: S, N: T, S: B, E, W }; return { B: S, T: N, N: B, S: T, E, W }; };
+  const st = [[0, { B: 0, T: 1, N: 2, S: 3, E: 4, W: 5 }]]; face[0] = 0;
+  while (st.length) { const [i, s] = st.pop(); const [x, y] = cells[i]; [['E', 1, 0], ['W', -1, 0], ['N', 0, -1], ['S', 0, 1]].forEach(([d, dx, dy]) => { const j = set.get(key([x + dx, y + dy])); if (j !== undefined && face[j] < 0) { const ns = roll(s, d); face[j] = ns.B; st.push([j, ns]); } }); }
+  return face;
+}
+const OPP = f => [1, 0, 3, 2, 5, 4][f];
+ZU.tenkai = () => {
+  let cells = pick(NETS).map(c => c.slice()); if (R(0, 1)) { const mx = Math.max(...cells.map(c => c[0])); cells = cells.map(([x, y]) => [mx - x, y]); } if (R(0, 1)) { const my = Math.max(...cells.map(c => c[1])); cells = cells.map(([x, y]) => [x, my - y]); }
+  const face = foldNet(cells); if (new Set(face).size !== 6) return null;
+  const labels = ['ア', 'イ', 'ウ', 'エ', 'オ', 'カ']; const order = shuffle(range(0, 5)); // セルiのラベル
+  const lab = i => labels[order[i]];
+  const u = 38; const W = (Math.max(...cells.map(c => c[0])) + 1) * u + 20, H = (Math.max(...cells.map(c => c[1])) + 1) * u + 20;
+  const draw = txt => { const sv = new Svg(W, H); cells.forEach((c, i) => { sv.rect(10 + c[0] * u, 10 + c[1] * u, u, u); sv.text(10 + c[0] * u + u / 2, 10 + c[1] * u + u / 2, txt(i), { size: 15 }); }); return sv.toString(); };
+  const i0 = R(0, 5); const opp = face.indexOf(OPP(face[i0])); const perp = range(0, 5).filter(j => j !== i0 && j !== opp).map(lab).sort();
+  // サイコロ
+  const num = Array(6); const pairs = shuffle([[1, 6], [2, 5], [3, 4]]); [[0, 1], [2, 3], [4, 5]].forEach(([f1, f2], k) => { const [p, qv] = R(0, 1) ? pairs[k] : [pairs[k][1], pairs[k][0]]; num[face.indexOf(f1)] = p; num[face.indexOf(f2)] = qv; });
+  const hide = [[0, 1], [2, 3], [4, 5]].map(pr => face.indexOf(pick(pr))).sort((u, v) => u - v);
+  return { title: '図形（立方体の展開図）', lead: `下の図は，立方体の展開図である。<br>このとき，次の問いに答えなさい。`, fig: draw(lab), items: [
+    { q: `この展開図を組み立てて立方体をつくるとき，面${lab(i0)}と向かい合う（平行になる）面を答えなさい。`, a: `面${lab(opp)}` },
+    { q: `(1)の立方体で，面${lab(i0)}と垂直になる面をすべて答えなさい。`, a: perp.map(x => '面' + x).join('，') },
+    { q: `下の図のように，同じ展開図の面に数を書き入れて，向かい合う面の数の和がどれも 7 になるさいころをつくる。空らんの面 X，Y，Z にあてはまる数をそれぞれ答えなさい。${draw(i => (hide.includes(i) ? ['X', 'Y', 'Z'][hide.indexOf(i)] : String(num[i])))}`, a: hide.map((i, k) => `${['X', 'Y', 'Z'][k]} = ${num[i]}`).join('，') },
+  ] };
+};
+Object.assign(ZU_LABEL, { touei: '投影図（立体の名前・体積・表面積）', tenkai: '立方体の展開図（向かい合う面・さいころ）' });
+
+// ===== 確率・データの活用 =====
+const KP = {};
+const cardsHtml = cs => `<div class="cards">${cs.map(c => `<span class="card">${c}</span>`).join('')}</div>`;
+KP.cards = () => {
+  const set = pick([[-3, -2, -1, 1, 2, 3], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5, 6], [-2, -1, 0, 1, 2, 3], [2, 3, 4, 5, 6]]);
+  const conds = [
+    ['ひいた2枚のカードに書かれた数の積が正の数となる', ([a, b]) => a * b > 0],
+    ['ひいた2枚のカードに書かれた数の和が，その2枚のカードに書かれた数の積より大きくなる', ([a, b]) => a + b > a * b],
+    ['ひいた2枚のカードに書かれた数の和が偶数となる', ([a, b]) => (a + b) % 2 === 0],
+    ['ひいた2枚のカードに書かれた数の和が素数となる', ([a, b]) => isPrime(a + b)],
+    ['ひいた2枚のカードに書かれた数の積が3の倍数となる', ([a, b]) => (a * b) % 3 === 0],
+    ['ひいた2枚のカードに書かれた数の和が0以上となる', ([a, b]) => a + b >= 0],
+  ];
+  const ok = conds.map(([t, f]) => [t, prob(pairs(set), f)]).filter(([, p]) => p.n > 0 && !p.eq(1));
+  if (ok.length < 2) return null; const two = sample(ok, 2);
+  // 2けたの整数（順番に2回）
+  const pos = set.filter(v => v > 0 && v < 10); const items = two.map(([t, p]) => ({ q: `${t}確率を求めなさい。`, a: qh(p) }));
+  if (pos.length === set.length && R(0, 1)) { const k = pick([3, 4]); const p = prob(ordered(set), ([a, b]) => (10 * a + b) % k === 0);
+    items.push({ q: `このカードをよくきって1枚ずつ続けて2枚ひき，1枚目を十の位，2枚目を一の位として2けたの整数をつくる。この整数が ${k} の倍数となる確率を求めなさい。ただし，ひいたカードはもとにもどさないものとする。`, a: qh(p) }); }
+  return { title: '確率（カード）', lead: `下の図のように，${set.map(num).join('，')} の数が1つずつ書かれた ${set.length} 枚のカードがある。このカードをよくきって，同時に2枚のカードをひく。<br>このとき，次の問いに答えなさい。ただし，どのカードをひくことも同様に確からしいものとする。`, fig: cardsHtml(set.map(num)), items };
+};
+KP.balls = () => {
+  const r = R(1, 3), w = R(1, 3), bl = R(0, 2); if (r + w + bl < 4 || r + w + bl > 6) return null;
+  const balls = []; for (let i = 0; i < r; i++) balls.push('赤' + (i + 1)); for (let i = 0; i < w; i++) balls.push('白' + (i + 1)); for (let i = 0; i < bl; i++) balls.push('青' + (i + 1));
+  const col = x => x[0];
+  const pool = [
+    ['同時に2個の玉を取り出すとき，2個とも同じ色の玉である', prob(pairs(balls), ([a, b]) => col(a) === col(b))],
+    ['同時に2個の玉を取り出すとき，少なくとも1個は白玉である', prob(pairs(balls), ([a, b]) => col(a) === '白' || col(b) === '白')],
+    ['同時に2個の玉を取り出すとき，赤玉と白玉が1個ずつである', prob(pairs(balls), ([a, b]) => new Set([col(a), col(b)]).size === 2 && [col(a), col(b)].includes('赤') && [col(a), col(b)].includes('白'))],
+    ['玉を1個取り出して色を調べてから袋にもどし，もう一度玉を1個取り出すとき，2回とも赤玉である', prob(withRep(balls), ([a, b]) => col(a) === '赤' && col(b) === '赤')],
+    ['玉を1個取り出して色を調べてから袋にもどし，もう一度玉を1個取り出すとき，2回目に取り出した玉が1回目と異なる色である', prob(withRep(balls), ([a, b]) => col(a) !== col(b))],
+    ['玉を1個取り出し，それを袋にもどさずに，続けてもう1個取り出すとき，1回目に赤玉，2回目に白玉を取り出す', prob(ordered(balls), ([a, b]) => col(a) === '赤' && col(b) === '白')],
+  ].filter(([, p]) => p.n > 0 && !p.eq(1));
+  const pp = sample(pool, 2);
+  const items = [{ q: `袋の中から玉を1個取り出すとき，赤玉以外の玉を取り出す確率を求めなさい。`, a: qh(q(w + bl, r + w + bl)) }].concat(pp.map(([t, p]) => ({ q: `${t}確率を求めなさい。`, a: qh(p) })));
+  const desc = [`赤玉 ${r} 個`, `白玉 ${w} 個`].concat(bl ? [`青玉 ${bl} 個`] : []).join('，');
+  const fig = `<div class="bag">${balls.map(b => `<span class="ball ${b[0] === '赤' ? 'red' : b[0] === '白' ? 'white' : 'blue'}">${b[0]}</span>`).join('')}</div>`;
+  return { title: '確率（袋の中の玉）', lead: `袋の中に，${desc}が入っている。この袋から玉を取り出す。<br>このとき，次の問いに答えなさい。ただし，どの玉が取り出されることも同様に確からしいものとする。`, fig, items };
+};
+KP.dice_grid = () => {
+  const pool = [];
+  const k = R(-2, 2); pool.push([`点Pが直線 ${lineEq(1, k)} 上の点となる`.replace(`${Y} = ${X}`, `${Y} = ${X}`), ([a, b]) => b === a + k]);
+  const c = R(5, 9); pool.push([`点Pが直線 ${lineEq(-1, c)} 上の点となる`, ([a, b]) => b === -a + c]);
+  const d = pick([3, 4, 5]); pool.push([`線分OPの長さが ${d} cm 以下となる`, ([a, b]) => a * a + b * b <= d * d]);
+  const m = pick([6, 12]); pool.push([`点Pが関数 ${Y} = ${frac(m, V('x'))} のグラフ上の点となる`, ([a, b]) => a * b === m]);
+  pool.push([`点Pが関数 ${Y} = ${frac(1, 2)}${X} のグラフより下側にある`, ([a, b]) => b < a / 2]);
+  const s = R(6, 12); pool.push([`点A(6, 0)として，△OAPの面積が ${s} cm<sup>2</sup> 以上となる`, ([a, b]) => 3 * b >= s]);
+  const two = sample(pool, 2).map(([t, f]) => [t, prob(dice2(), f)]); if (two.some(([, p]) => p.n === 0 || p.eq(1))) return null;
+  const pl = new Plane(-0.8, 7, -0.8, 7, 210, { grid: 1 }); [1, 2, 3, 4, 5, 6].forEach(v => { pl.lab([v, 0], v, 0, 11, { size: 11 }); pl.lab([0, v], v, -9, 0, { size: 11 }); });
+  const ex = [R(1, 6), R(1, 6)]; pl.pt(ex, 'P', [1, 1]);
+  return { title: '確率（さいころと座標）', lead: `大小2つのさいころを同時に投げ，大きいさいころの出た目の数を ${A_}，小さいさいころの出た目の数を ${B_} とし，(${A_}, ${B_}) を座標とする点Pをとる。例えば，下の図の点Pは，大きいさいころの出た目の数が ${ex[0]}，小さいさいころの出た目の数が ${ex[1]} のときの座標(${ex[0]}, ${ex[1]})を表したものである。<br>このとき，次の問いに答えなさい。${UNIT_NOTE}また，さいころを投げるとき，1から6までのどの目が出ることも同様に確からしいものとする。`, fig: pl.toString(), items: two.map(([t, p]) => ({ q: `${t}確率を求めなさい。`, a: qh(p) })) };
+};
+function boxPlotSvg(groups, lo, hi, step, unit) {
+  const W = 380, left = 50, right = 20, rowH = 44, top = 10; const H = top + rowH * groups.length + 34; const sc = v => left + (v - lo) / (hi - lo) * (W - left - right);
+  const sv = new Svg(W, H);
+  for (let v = lo; v <= hi; v += step) { sv.line(sc(v), top, sc(v), top + rowH * groups.length, { cls: 'grid' }); if ((v - lo) % (step * 2) === 0 || step >= 10) sv.text(sc(v), top + rowH * groups.length + 12, v, { size: 11 }); }
+  sv.rect(left, top, W - left - right, rowH * groups.length, { cls: 'thin' });
+  groups.forEach((g, i) => { const y = top + rowH * i + rowH / 2; const [mn, q1, md, q3, mx] = g.f; sv.line(sc(mn), y, sc(q1), y).line(sc(q3), y, sc(mx), y).rect(sc(q1), y - 11, sc(q3) - sc(q1), 22, { fill: 'var(--paper)' }).line(sc(md), y - 11, sc(md), y + 11).line(sc(mn), y - 6, sc(mn), y + 6).line(sc(mx), y - 6, sc(mx), y + 6); sv.text(24, y, g.name, { size: 12 }); });
+  sv.text(W - 12, top + rowH * groups.length + 26, `(${unit})`, { size: 11, anchor: 'end' });
+  return sv.toString();
+}
+KP.boxplot = () => {
+  const ng = pick([3, 4]); const names = ['1組', '2組', '3組', '4組'].slice(0, ng); const n = 31;
+  const ctx = pick([{ w: '数学のテストの得点', u: '点', lo: 20, hi: 100, st: 5 }, { w: '1か月に読んだ本の冊数', u: '冊', lo: 0, hi: 20, st: 1 }, { w: 'ハンドボール投げの記録', u: 'm', lo: 4, hi: 40, st: 1 }]);
+  const span = ctx.hi - ctx.lo; const steps = span / ctx.st;
+  const gs = names.map(name => { let gaps; do gaps = [R(2, Math.ceil(steps * 0.3)), R(2, Math.ceil(steps * 0.22)), R(2, Math.ceil(steps * 0.22)), R(2, Math.ceil(steps * 0.3))]; while (gaps.reduce((a, b) => a + b, 0) > steps - 2);
+    const tot = gaps.reduce((a, b) => a + b, 0); let v = R(1, steps - 1 - tot); const pts = [v]; gaps.forEach(g => { v += g; pts.push(v); }); return { name, f: pts.map(k => ctx.lo + k * ctx.st) }; });
+  if (gs.some(g => g.f[3] - g.f[1] < span * 0.12)) return null;
+  const uniq = (fn, mode = 'max') => { const vals = gs.map(fn); const best = mode === 'max' ? Math.max(...vals) : Math.min(...vals); return vals.filter(v => v === best).length === 1 ? gs[vals.indexOf(best)] : null; };
+  const medMax = uniq(g => g.f[2]), iqrMin = uniq(g => g.f[3] - g.f[1], 'min'), rngMax = uniq(g => g.f[4] - g.f[0]), maxMax = uniq(g => g.f[4]), iqrMax = uniq(g => g.f[3] - g.f[1]);
+  if (!medMax || !iqrMin || !rngMax || !maxMax || !iqrMax) return null;
+  // 文の候補（種類ごと）
+  const types = [[], [], [], []];
+  gs.forEach(g => {
+    types[0].push([`範囲が最も大きいのは${g.name}である。`, g === rngMax]);
+    types[1].push([`四分位範囲が最も大きいのは${g.name}である。`, g === iqrMax]);
+    const V = g.f[2] - pick([0, 0, 1, 2]); const set = gs.filter(h => h.f[2] >= V); types[2].push([`${V}${ctx.u}以上の生徒が半数以上いるのは${g.name}だけである。`, set.length === 1 && set[0] === g]);
+    const V2 = g.f[1] + pick([-2, -1, 0, 1, 2]); types[3].push([`${g.name}では，${V2}${ctx.u}以下の生徒が少なくとも8人いる。`, g.f[1] <= V2]);
+  });
+  const tt = R(0, 3); const Tc = types[tt].filter(x => x[1]); if (!Tc.length) return null;
+  const four0 = [pick(Tc)]; for (let i = 0; i < 4; i++) { if (i === tt) continue; const Fc = types[i].filter(x => !x[1]); if (!Fc.length) return null; four0.push(pick(Fc)); }
+  const four = shuffle(four0); const ans = KANA[four.findIndex(x => x[1])];
+  const items = [
+    { q: `中央値が最も大きい組の中央値を求めなさい。`, a: `${medMax.name}，${medMax.f[2]} ${ctx.u}` },
+    { q: `四分位範囲が最も小さい組の，四分位範囲を求めなさい。`, a: `${iqrMin.name}，${iqrMin.f[3] - iqrMin.f[1]} ${ctx.u}` },
+    { q: `箱ひげ図から読み取れることとして正しいものを，次のア〜エから1つ選び，記号で答えなさい。${choices(four.map(s => s[0]), 1)}`, a: ans, ex: '31人の場合，中央値は小さい方から16番目，第1四分位数は8番目，第3四分位数は24番目の値である。' },
+  ];
+  return { title: 'データの活用（箱ひげ図）', lead: `下の図は，ある中学校の3年生の${names.join('，')}のそれぞれ ${n} 人について，${ctx.w}を調べ，その結果を組ごとに箱ひげ図に表したものである。ただし，記録は整数とする。<br>このとき，次の問いに答えなさい。`, fig: boxPlotSvg(gs, ctx.lo, ctx.hi, ctx.st, ctx.u), items };
+};
+KP.dosuu = (useHist = false) => {
+  const N = pick([20, 25, 50]); const k = pick([5, 6, 7]);
+  const ctx = pick([['通学時間', '分', 0, pick([5, 10])], ['1週間の読書時間', '時間', 0, 2], ['ハンドボール投げの記録', 'm', 5, pick([3, 5])], ['握力', 'kg', 15, 5], ['50 m 走の記録', '秒', 6.5, 0.5]]);
+  const s0 = ctx[2], w = ctx[3];
+  // 度数を作る
+  const fr = new Array(k).fill(0); for (let i = 0; i < N; i++) { const x = Math.min(k - 1, Math.max(0, Math.round((Math.random() + Math.random() + Math.random()) / 3 * (k - 1) + (Math.random() - 0.5)))); fr[x]++; }
+  const mx = Math.max(...fr); if (fr.filter(v => v === mx).length > 1 || fr.some(v => v === 0)) return null;
+  const mode = s0 + w * fr.indexOf(mx) + w / 2;
+  let cum = 0, medCls = -1; const half = N / 2; for (let i = 0; i < k; i++) { cum += fr[i]; if (medCls < 0 && cum >= half) { if (N % 2 === 0 && cum === half) return null; medCls = i; break; } }
+  const blankI = R(0, k - 1);
+  const rel = i => fixDec(fr[i] / N); const ci = R(1, k - 2); let cumr = 0; for (let i = 0; i <= ci; i++) cumr += fr[i];
+  const ri = R(0, k - 1);
+  const rows = fr.map((v, i) => [`${fmtDec(s0 + w * i)} 〜 ${fmtDec(s0 + w * (i + 1))}`, i === blankI ? '<span class="bx sm">ア</span>' : v]);
+  const tb = `<div><table class="tb"><tr><th>階級（${ctx[1]}）</th><th>度数（人）</th></tr>${rows.map(r => `<tr><td class="cls">${r[0]}</td><td>${r[1]}</td></tr>`).join('')}<tr><th>計</th><td>${N}</td></tr></table><div class="note">※ 各階級は「以上〜未満」を表す。</div></div>`;
+  const items = [
+    { q: `表のアにあてはまる数を求めなさい。`, a: `${fr[blankI]}` },
+    { q: `最頻値を求めなさい。`, a: `${fmtDec(mode)} ${ctx[1]}`, ex: '度数が最も多い階級の階級値' },
+    { q: `中央値がふくまれる階級を答えなさい。`, a: `${fmtDec(s0 + w * medCls)} ${ctx[1]}以上 ${fmtDec(s0 + w * (medCls + 1))} ${ctx[1]}未満` },
+    { q: `${fmtDec(s0 + w * ri)} ${ctx[1]}以上 ${fmtDec(s0 + w * (ri + 1))} ${ctx[1]}未満の階級の相対度数を求めなさい。`, a: rel(ri) },
+    { q: `${fmtDec(s0 + w * ci)} ${ctx[1]}以上 ${fmtDec(s0 + w * (ci + 1))} ${ctx[1]}未満の階級までの累積相対度数を求めなさい。`, a: fixDec(cumr / N) },
+  ];
+  if (useHist) { items.shift(); return { title: 'データの活用（ヒストグラム）', lead: `下の図は，ある中学校の生徒 ${N} 人の${ctx[0]}を調べ，ヒストグラムに表したものである。例えば，${fmtDec(s0)} ${ctx[1]}以上 ${fmtDec(s0 + w)} ${ctx[1]}未満の生徒は ${fr[0]} 人である。<br>このとき，次の問いに答えなさい。`, fig: histSvg(fr, s0, w, ctx[1]), items }; }
+  return { title: 'データの活用（度数分布表）', lead: `右の表は，ある中学校の生徒 ${N} 人の${ctx[0]}を調べ，度数分布表に整理したものである。ただし，表の一部が空欄になっている。<br>このとき，次の問いに答えなさい。`, fig: tb, items };
+};
+const KP_LABEL = { cards: 'カードの確率', balls: '袋の中の玉の確率', dice_grid: 'さいころと座標', boxplot: '箱ひげ図の読み取り', dosuu: '度数分布表' };
+KP.coins = () => {
+  const set = pick([[100, 50, 10], [100, 50, 10, 5], [500, 100, 10], [50, 10, 5]]); const n = set.length; const all = []; for (let m = 0; m < 1 << n; m++) all.push(set.map((c, i) => (m >> i & 1 ? c : 0)));
+  const heads = o => o.filter(v => v > 0).length, sum = o => o.reduce((a, b) => a + b, 0);
+  const k = R(1, n - 1); const sums = [...new Set(all.map(sum))].sort((a, b) => a - b); const X0 = pick(sums.slice(2, -2));
+  const p1 = prob(all, o => heads(o) >= k + (n === 4 ? 1 : 0)); const p2 = prob(all, o => sum(o) >= X0);
+  const nm = set.map(c => `${c}円`).join('，');
+  const items = [
+    { q: `${n} 枚の硬貨の表と裏の出方は，全部で何通りあるか求めなさい。`, a: `${1 << n} 通り` },
+    { q: `${k + (n === 4 ? 1 : 0)} 枚以上が表となる確率を求めなさい。`, a: qh(p1) },
+    { q: `表が出た硬貨の合計金額が ${X0} 円以上になる確率を求めなさい。`, a: qh(p2), ex: '樹形図や表で，表が出た硬貨の組み合わせをすべて書き出す。' },
+  ];
+  if (p2.eq(1) || p2.n === 0) return null;
+  return { title: '確率（硬貨）', lead: `${nm}の硬貨が1枚ずつある。これら ${n} 枚の硬貨を同時に1回投げる。<br>このとき，次の問いに答えなさい。ただし，硬貨の表と裏の出方は同様に確からしいものとする。`, fig: `<div class="cards">${set.map(c => `<span class="coin">${c}円</span>`).join('')}</div>`, items };
+};
+KP.numline = () => {
+  const k = R(0, 2); const t = R(0, 1);
+  const pos = ([a, b]) => a - b;
+  const p1 = prob(dice2(), d => Math.abs(pos(d)) <= k); const c = R(2, 4); const p2 = prob(dice2(), d => pos(d) >= c);
+  const sv = new Svg(300, 50); const sc = x => 150 + x * 20; sv.line(10, 25, 290, 25); for (let x = -6; x <= 6; x++) { sv.line(sc(x), 20, sc(x), 30); if (x % 5 === 0) sv.text(sc(x), 42, num(x), { size: 11 }); } sv.dot(sc(0), 25, 3.5).text(sc(0), 10, 'P');
+  const items = [
+    { q: `点Pが原点Oにもどる確率を求めなさい。`, a: qh(prob(dice2(), d => pos(d) === 0)) },
+    { q: `絶対値が ${k} 以下の範囲に点Pが止まる確率を求めなさい。`, a: qh(p1) },
+    { q: `点Pが ${c} 以上の数を表す点に止まる確率を求めなさい。`, a: qh(p2) },
+  ];
+  if (k === 0) items.splice(1, 1);
+  return { title: '確率（数直線上の点の移動）', lead: `下の図のように，数直線上の0の位置に点Pがある。1から6までの目が出るさいころを2回投げ，1回目に出た目を ${A_}，2回目に出た目を ${B_} とする。点Pは数直線上を正の方向に ${A_} だけ動いた後，負の方向に ${B_} だけ動いて止まる。<br>このとき，次の問いに答えなさい。ただし，さいころのどの目が出ることも同様に確からしいものとする。`, fig: sv.toString(), items };
+};
+KP_LABEL.coins = '硬貨の確率'; KP_LABEL.numline = '数直線上の点の移動（さいころ）';
+KP.twobags = () => {
+  const A = pick([[1, 2, 3], [1, 2, 3, 4], [2, 3, 4], [1, 3, 5]]), B = pick([[1, 2, 3, 4], [2, 4, 6], [1, 2, 3, 4, 5], [0, 1, 2]]);
+  const sp = []; A.forEach(a => B.forEach(b => sp.push([a, b])));
+  const s = R(4, 7); const pool = [
+    [`袋Aから取り出したカードの数を十の位，袋Bから取り出したカードの数を一の位として2けたの整数をつくるとき，その整数が3の倍数になる`, ([a, b]) => (10 * a + b) % 3 === 0],
+    [`取り出した2枚のカードの数の和が ${s} になる`, ([a, b]) => a + b === s],
+    [`取り出した2枚のカードの数の積が偶数になる`, ([a, b]) => (a * b) % 2 === 0],
+    [`袋Aから取り出したカードの数が，袋Bから取り出したカードの数より大きくなる`, ([a, b]) => a > b],
+    [`取り出した2枚のカードの数の和が素数になる`, ([a, b]) => isPrime(a + b)],
+  ].map(([t, f]) => [t, prob(sp, f)]).filter(([, p]) => p.n > 0 && !p.eq(1)); if (pool.length < 3) return null;
+  const three = sample(pool, 3);
+  return { title: '確率（2つの袋）', lead: `袋Aには ${A.join('，')} の数が書かれたカードが1枚ずつ，袋Bには ${B.join('，')} の数が書かれたカードが1枚ずつ入っている。袋A，Bからそれぞれ1枚ずつカードを取り出す。<br>このとき，次の問いに答えなさい。ただし，どのカードを取り出すことも同様に確からしいものとする。`, fig: `<div class="cards"><span class="bagl">袋A</span>${A.map(v => `<span class="card">${v}</span>`).join('')}<span class="bagl">袋B</span>${B.map(v => `<span class="card">${v}</span>`).join('')}</div>`, items: three.map(([t, p]) => ({ q: `${t}確率を求めなさい。`, a: qh(p) })) };
+};
+KP.sq_move = () => {
+  const V4 = ['A', 'B', 'C', 'D'];
+  const sp = dice2(); const pAt = t => prob(sp, ([a, b]) => (a + b) % 4 === t); const tgt = R(0, 3);
+  const pSame = prob(sp, ([a, b]) => a % 4 === (4 - b % 4) % 4); const pTri = prob(sp, ([a, b]) => { const P = a % 4, Q = (4 - b % 4) % 4; return P !== 0 && Q !== 0 && P !== Q; });
+  const sv = new Svg(170, 150); const A = [35, 30], B = [35, 125], C = [130, 125], D = [130, 30]; sv.poly([A, B, C, D]); sv.text(A[0] - 10, A[1] - 6, 'A').text(B[0] - 10, B[1] + 8, 'B').text(C[0] + 10, C[1] + 8, 'C').text(D[0] + 10, D[1] - 6, 'D'); sv.dot(A[0], A[1], 4);
+  sv.path(`M${B[0] + 30},${B[1] - 12} A30,30 0 0 0 ${B[0] + 12},${B[1] - 30}`, { w: 1 }).pline([[B[0] + 24, B[1] - 16], [B[0] + 30, B[1] - 12], [B[0] + 32, B[1] - 19]], { w: 1 });
+  const items = [
+    { q: `大きいさいころだけを1回投げたとき，点Pが頂点Bにある確率を求めなさい。`, a: qh(q([1, 5].length, 6)), ex: '1と5の目の2通り' },
+    { q: `2つのさいころを投げ，点Pを，出た目の数の和だけ移動させる。点Pが頂点${V4[tgt]}にある確率を求めなさい。`, a: qh(pAt(tgt)) },
+    { q: `点Pは大きいさいころの出た目の数だけ反時計回りに，点Qは小さいさいころの出た目の数だけ時計回りに，どちらも頂点Aから移動させる。2点P，Qが同じ頂点にある確率を求めなさい。`, a: qh(pSame) },
+    { q: `(3)のとき，3点A，P，Qを結んでできる図形が三角形になる確率を求めなさい。`, a: qh(pTri) },
+  ];
+  return { title: '確率（正方形の頂点を動く点）', lead: `下の図のように，正方形ABCDの頂点Aに点Pがある。大小2つのさいころを投げ，点Pを，頂点A→B→C→D→A→…の順に，反時計回りに1つずつ頂点を移動させる。<br>このとき，次の問いに答えなさい。ただし，さいころのどの目が出ることも同様に確からしいものとする。`, fig: sv.toString(), items };
+};
+function histSvg(fr, s0, w, unit) { const W = 320, H = 190, L = 40, Bm = 30; const k = fr.length, mx = Math.max(...fr); const top = Math.ceil(mx / 2) * 2 + 2; const bw = (W - L - 20) / k; const sy = (H - Bm - 14) / top;
+  const sv = new Svg(W, H); for (let v = 0; v <= top; v += top > 12 ? 4 : 2) { sv.line(L, H - Bm - v * sy, W - 20, H - Bm - v * sy, { cls: 'grid' }); sv.text(L - 10, H - Bm - v * sy, v, { size: 10 }); }
+  fr.forEach((f, i) => sv.rect(L + i * bw, H - Bm - f * sy, bw, f * sy, { fill: 'var(--shade)' })); sv.line(L, H - Bm, W - 20, H - Bm).line(L, H - Bm, L, 8);
+  for (let i = 0; i <= k; i++) sv.text(L + i * bw, H - Bm + 12, fmtDec(s0 + w * i), { size: 10 }); sv.text(W - 10, H - 6, `(${unit})`, { size: 10, anchor: 'end' }); sv.text(L - 30, 12, '(人)', { size: 10 }); return sv.toString(); }
+KP.hist = () => KP.dosuu(true);
+KP_LABEL.hist = 'ヒストグラムの読み取り';
+KP_LABEL.twobags = '2つの袋からカードを取り出す確率'; KP_LABEL.sq_move = '正方形の頂点を動く点（さいころ）';
+KP.kijutsu = () => {
+  const ctx = pick([{ w: 'ハンドボール投げの記録', u: 'm', lo: 4, hi: 40, st: 1 }, { w: '1か月の読書時間', u: '時間', lo: 0, hi: 30, st: 1 }, { w: '数学の小テストの得点', u: '点', lo: 0, hi: 50, st: 1 }]);
+  const steps = (ctx.hi - ctx.lo) / ctx.st; const mkG = name => { let g; do g = [R(1, 4), R(2, 8), R(2, 6), R(2, 6), R(2, 8)]; while (g.reduce((a, b) => a + b, 0) > steps - 1); const pts = []; let v = 0; g.forEach(x => { v += x; pts.push(v); }); return { name, f: pts.map(k => ctx.lo + k * ctx.st) }; };
+  const G = [mkG('1組'), mkG('2組')]; const [g1, g2] = G;
+  if (g1.f[2] === g2.f[2]) return null; const hiG = g1.f[2] > g2.f[2] ? g1 : g2, loG = hiG === g1 ? g2 : g1;
+  const X0 = loG.f[2] + 1; if (X0 > hiG.f[2]) return null; const iq = g => g.f[3] - g.f[1]; if (iq(g1) === iq(g2)) return null; const wide = iq(g1) > iq(g2) ? g1 : g2;
+  const items = [
+    { q: `${X0} ${ctx.u}以上の生徒が16人以上いるのはどちらの組か。そう判断できる理由を，箱ひげ図の特徴をもとに説明しなさい。`, a: `${hiG.name}。（例）各組31人なので中央値は16番目の値である。${hiG.name}の中央値は ${hiG.f[2]} ${ctx.u}で ${X0} ${ctx.u}以上だから，${X0} ${ctx.u}以上の生徒は少なくとも16人いる。${loG.name}の中央値は ${loG.f[2]} ${ctx.u}で ${X0} ${ctx.u}未満だから，${X0} ${ctx.u}以上の生徒は15人以下である。` },
+    { q: `記録の散らばりの程度が大きいのはどちらの組といえるか。「四分位範囲」という語句を用いて説明しなさい。`, a: `${wide.name}。（例）四分位範囲は，1組が ${iq(g1)} ${ctx.u}，2組が ${iq(g2)} ${ctx.u}で，${wide.name}の方が大きいので，中央付近のおよそ半数のデータの散らばりが大きいといえる。` },
+    { q: `Aさんは「1組の平均値は ${g1.f[2]} ${ctx.u}である」と言った。この発言が正しいといえるかどうかを答え，その理由を説明しなさい。`, a: `正しいとはいえない。（例）箱ひげ図の箱の中の線は中央値を表しており，箱ひげ図からは平均値はわからないため。` },
+  ];
+  return { title: 'データの活用（理由を説明する問題）', lead: `下の図は，ある中学校の3年1組と3年2組のそれぞれ31人の${ctx.w}を，組ごとに箱ひげ図に表したものである。ただし，記録は整数とする。<br>このとき，次の問いに答えなさい。`, fig: boxPlotSvg(G, ctx.lo, ctx.hi, ctx.st * (ctx.hi - ctx.lo > 40 ? 2 : 1), ctx.u), items };
+};
+KP_LABEL.kijutsu = '箱ひげ図と理由の説明（記述）';
+KP.janken = () => {
+  const n = pick([2, 3, 3, 4]); const names = ['A', 'B', 'C', 'D'].slice(0, n); const sp = []; for (let m = 0; m < 3 ** n; m++) { const h = []; let x = m; for (let i = 0; i < n; i++) { h.push(x % 3); x = Math.floor(x / 3); } sp.push(h); }
+  const kinds = h => new Set(h).size; const winners = h => { const s = [...new Set(h)]; if (s.length !== 2) return []; const [p, r] = s; const w = (p + 1) % 3 === r ? p : r; return h.map((v, i) => (v === w ? i : -1)).filter(i => i >= 0); }; // 0グー1チョキ2パー: gがcに勝つ → (g+1)%3===c
+  const items = [
+    { q: `${n} 人の手の出し方は全部で何通りあるか求めなさい。`, a: `${3 ** n} 通り` },
+    { q: `あいこになる確率を求めなさい。`, a: qh(prob(sp, h => kinds(h) !== 2)) },
+    { q: n === 2 ? `Aさんが勝つ確率を求めなさい。` : `Aさんだけが勝つ確率を求めなさい。`, a: qh(prob(sp, h => { const w = winners(h); return w.length === 1 && w[0] === 0 || (n === 2 && w[0] === 0); })) },
+  ];
+  if (n >= 3) items.push({ q: `1回で勝つ人が1人に決まる確率を求めなさい。`, a: qh(prob(sp, h => winners(h).length === 1)) });
+  return { title: '確率（じゃんけん）', lead: `${names.join('，')}の ${n} 人が1回じゃんけんをする。<br>このとき，次の問いに答えなさい。ただし，それぞれの人がグー，チョキ，パーのどれを出すことも同様に確からしいものとする。`, items };
+};
+KP.narabe = () => {
+  const set = pick([[1, 2, 3, 4], [0, 1, 2, 3], [1, 2, 3, 4, 5], [0, 2, 4, 5], [1, 3, 5, 6]]); const k = pick([2, 3]);
+  const nums = []; const rec = (pre, rest) => { if (pre.length === k) { if (pre[0] !== 0) nums.push(+pre.join('')); return; } rest.forEach((v, i) => rec(pre.concat(v), rest.filter((_, j) => j !== i))); }; rec([], set);
+  const X = pick(nums.slice().sort((a, b) => a - b).slice(Math.floor(nums.length / 4), Math.floor(nums.length * 3 / 4)));
+  const pe = q(nums.filter(v => v % 2 === 0).length, nums.length), p3 = q(nums.filter(v => v % 3 === 0).length, nums.length), px = q(nums.filter(v => v >= X).length, nums.length);
+  const items = [
+    { q: `${k}けたの整数は全部で何通りできるか求めなさい。`, a: `${nums.length} 通り`, ex: set.includes(0) ? '0は最上位の位に置けないことに注意する。' : '' },
+    { q: `できた整数が偶数になる確率を求めなさい。`, a: qh(pe) },
+    { q: `できた整数が3の倍数になる確率を求めなさい。`, a: qh(p3) },
+    { q: `できた整数が ${X} 以上になる確率を求めなさい。`, a: qh(px) },
+  ].filter(it => !/^0$/.test(it.a));
+  return { title: '確率（カードを並べて整数をつくる）', lead: `${set.join('，')} の数字が1つずつ書かれた ${set.length} 枚のカードがある。この中から ${k} 枚を取り出して左から順に並べ，${k}けたの整数をつくる。<br>このとき，次の問いに答えなさい。ただし，どのカードの取り出し方も同様に確からしいものとし，0 を一番左に置くことはできないものとする。`, fig: cardsHtml(set.map(String)), items };
+};
+KP.kuji = () => {
+  const n = R(4, 7), k = R(1, 2); const tickets = range(1, n).map(i => (i <= k ? '当' : 'は')); const sp = ordered(range(0, n - 1));
+  const hit = i => i < k;
+  const items = [
+    { q: `Aさんが当たりくじをひく確率を求めなさい。`, a: qh(q(k, n)) },
+    { q: `Bさんが当たりくじをひく確率を求めなさい。`, a: qh(prob(sp, ([a, b]) => hit(b))) },
+    { q: k === 2 ? `2人とも当たりくじをひく確率を求めなさい。` : `2人のうち少なくとも1人が当たりくじをひく確率を求めなさい。`, a: qh(k === 2 ? prob(sp, ([a, b]) => hit(a) && hit(b)) : prob(sp, ([a, b]) => hit(a) || hit(b))) },
+    { q: `「先にくじをひく方が当たりやすい」という意見は正しいか。(1)，(2)の結果をもとに説明しなさい。`, a: `正しくない。（Aさん，Bさんが当たりくじをひく確率はどちらも ${qh(q(k, n))} で等しいから。）` },
+  ];
+  return { title: '確率（くじ引き）', lead: `${n} 本のくじがあり，そのうち ${k} 本が当たりである。Aさんが先に1本ひき，ひいたくじをもとにもどさずに，続けてBさんが1本ひく。<br>このとき，次の問いに答えなさい。ただし，どのくじをひくことも同様に確からしいものとする。`, items };
+};
+Object.assign(KP_LABEL, { janken: 'じゃんけんの確率', narabe: 'カードを並べて整数をつくる確率', kuji: 'くじ引きの確率（順番と当たりやすさ）' });
+KP.dice_line = () => {
+  const sp = dice2(); const k = R(5, 9); const s = pick([[2, 5], [1, 4], [3, 2], [1, 6]]);
+  const p1 = prob(sp, ([a, b]) => a + b === k); const p2 = prob(sp, ([a, b]) => b % a === 0);
+  const p3 = prob(sp, ([a, b]) => a !== s[0] && (b - s[1]) / (s[0] - a) > 0);
+  const items = [
+    { q: `直線 ℓ が点(1, ${k})を通る確率を求めなさい。`, a: qh(p1), ex: `${A_} + ${B_} = ${k} となる場合` },
+    { q: `直線 ℓ と ${X} 軸との交点の ${X} 座標が整数となる確率を求めなさい。`, a: qh(p2), ex: `交点の ${X} 座標は ${MINUS}${frac(B_, A_)}` },
+    { q: `直線 ℓ と直線 ${lineEq(s[0], s[1])} の交点の ${X} 座標が正となる確率を求めなさい。`, a: qh(p3), ex: `${A_}${X} + ${B_} = ${s[0] === 1 ? '' : s[0]}${X} + ${s[1]} より ${X} = ${frac(`${B_} − ${s[1]}`, `${s[0]} − ${A_}`)}。${A_} = ${s[0]} のときは平行になる。` },
+  ];
+  if (p1.n === 0 || p3.n === 0) return null;
+  return { title: '関数と確率の総合問題', lead: `大小2つのさいころを同時に投げ，大きいさいころの出た目の数を ${A_}，小さいさいころの出た目の数を ${B_} として，直線 ${Y} = ${A_}${X} + ${B_} を ℓ とする。<br>このとき，次の問いに答えなさい。ただし，さいころのどの目が出ることも同様に確からしいものとする。`, items };
+};
+KP_LABEL.dice_line = '関数と確率の総合（さいころで決まる直線）';
+
+// ===== 規則性 =====
+const KS = {};
+function seqFigs(drawOne, ns, cellW, cellH, labelFn = n => `${n}番目`) {
+  const gap = 18; const widths = ns.map(n => cellW(n)); const W = widths.reduce((s, v) => s + v, 0) + gap * (ns.length - 1) + 40; const H = cellH + 34;
+  const sv = new Svg(W, H); let x = 10;
+  ns.forEach((n, i) => { sv.text(x + widths[i] / 2, 12, labelFn(n), { size: 12 }); drawOne(sv, n, x, 26); x += widths[i] + gap; });
+  sv.text(x - 6, H / 2 + 8, '…', { size: 14 });
+  return sv.toString();
+}
+KS.matchi = () => {
+  const fams = [
+    { name: '正方形', desc: '同じ長さの棒を使って，下の図のように正方形を横一列につなげた図形をつくる。', a: 3, b: 1, unit: '正方形', w: n => n * 22, h: 22,
+      draw: (s, n, x, y) => { const u = 22; for (let i = 0; i <= n; i++) s.line(x + i * u, y, x + i * u, y + u, { w: 2 }); s.line(x, y, x + n * u, y, { w: 2 }).line(x, y + u, x + n * u, y + u, { w: 2 }); } },
+    { name: '正三角形', desc: '同じ長さの棒を使って，下の図のように正三角形を向きを交互に変えながら横一列につなげた図形をつくる。', a: 2, b: 1, unit: '正三角形', w: n => (n + 1) * 13, h: 23,
+      draw: (s, n, x, y) => { const u = 26, h = 22.5; const pts = []; for (let i = 0; i <= n + 1; i++) pts.push([x + i * u / 2, i % 2 ? y : y + h]); for (let i = 0; i < n; i++) s.line(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], { w: 2 }); s.line(pts[n][0], pts[n][1], pts[n - 1 >= 0 ? n : 0][0], pts[n][1], { w: 2 });
+        // 底辺・上辺
+        const bot = pts.filter((p, i) => i <= n && i % 2 === 0), topp = pts.filter((p, i) => i <= n && i % 2 === 1); if (bot.length > 1) s.line(bot[0][0], bot[0][1], bot[bot.length - 1][0], bot[0][1], { w: 2 }); if (topp.length > 1) s.line(topp[0][0], topp[0][1], topp[topp.length - 1][0], topp[0][1], { w: 2 }); } },
+    { name: '正方形2段', desc: '同じ長さの棒を使って，下の図のように，正方形を縦に2個，横に並べた図形をつくる。1番目は縦2個・横1列，2番目は縦2個・横2列，…とする。', a: 5, b: 2, unit: '列', w: n => n * 20, h: 40,
+      draw: (s, n, x, y) => { const u = 20; for (let i = 0; i <= n; i++) s.line(x + i * u, y, x + i * u, y + 2 * u, { w: 2 }); for (let j = 0; j <= 2; j++) s.line(x, y + j * u, x + n * u, y + j * u, { w: 2 }); } },
+    { name: '正六角形', desc: '同じ長さの棒を使って，下の図のように正六角形を横一列につなげた図形をつくる。', a: 5, b: 1, unit: '正六角形', w: n => n * 26 + 8, h: 30,
+      draw: (s, n, x, y) => { const r = 15; for (let i = 0; i < n; i++) { const cx = x + 13 + i * 26, cy = y + 15; const P = []; for (let k = 0; k < 6; k++) { const t = Math.PI / 6 + k * Math.PI / 3; P.push([cx + r * Math.cos(t), cy + r * Math.sin(t)]); } s.poly(P, { w: 2 }); } } },
+  ];
+  // 正三角形の描画を単純化（ジグザグ＋上下の線）
+  fams[1].draw = (s, n, x, y) => { const u = 26, h = 22.5; const pts = []; for (let i = 0; i <= n + 1; i++) pts.push([x + i * u / 2, i % 2 ? y : y + h]);
+    s.pline(pts, { w: 2 }); const bots = pts.filter((p, i) => i % 2 === 0), tops = pts.filter((p, i) => i % 2 === 1); if (bots.length > 1) s.line(bots[0][0], bots[0][1], bots[bots.length - 1][0], bots[0][1], { w: 2 }); if (tops.length > 1) s.line(tops[0][0], tops[0][1], tops[tops.length - 1][0], tops[0][1], { w: 2 }); };
+  fams[1].w = n => (n + 1) * 13 + 2;
+  const F = pick(fams); const a = F.a, b = F.b; const f = n => a * n + b;
+  const n1 = pick([5, 6, 7, 8]); const nT = R(15, 60); const T = f(nT);
+  const fig = seqFigs(F.draw, [1, 2, 3, 4], F.w, F.h);
+  const items = [
+    { q: `${n1}番目の図形をつくるのに必要な棒の本数を求めなさい。`, a: `${f(n1)} 本`, ex: `棒は1番目が ${f(1)} 本で，1つ増えるごとに ${a} 本ずつ増える。` },
+    { q: `${N_}番目の図形をつくるのに必要な棒の本数を，${N_} を用いた式で表しなさい。`, a: `${poly([[a, N_], [b, '']])} 本` },
+    { q: `棒を ${T} 本使ってできる図形は何番目の図形か求めなさい。`, a: `${nT}番目`, ex: `${poly([[a, N_], [b, '']])} = ${T} を解く。` },
+  ];
+  const tot = R(0, 1); if (tot) { const m = R(3, 5); let s = 0; for (let i = 1; i <= m; i++) s += f(i); items.push({ q: `1番目から ${m} 番目までの図形を，それぞれ別々につくるとき，必要な棒の本数の合計を求めなさい。`, a: `${s} 本` }); }
+  return { title: '規則性（棒でつくる図形）', lead: `${F.desc}<br>このとき，次の問いに答えなさい。`, fig, items };
+};
+KS.goishi = () => {
+  const fig = seqFigs((s, n, x, y) => { const u = 17; for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) { const edge = i === 0 || j === 0 || i === n || j === n; s.circle(x + 8 + i * u, y + 8 + j * u, 7, { fill: edge ? 'var(--ink)' : 'var(--paper)' }); } }, [1, 2, 3, 4], n => n * 17 + 16, 4 * 17 + 16);
+  const n1 = R(5, 8); const nd = R(8, 14); const T = (nd - 1) * (nd - 1) - 4 * nd; if (T <= 0) return null;
+  const nt = R(12, 30);
+  const items = [
+    { q: `${n1}番目の図形で，白い碁石の個数を求めなさい。`, a: `${(n1 - 1) ** 2} 個` },
+    { q: `${N_}番目の図形で，黒い碁石の個数を ${N_} を用いた式で表しなさい。`, a: `${4}${N_} 個`, ex: `1辺に並ぶ碁石は (${N_} + 1) 個。4すみを重複して数えないように ${`4(${N_} + 1) − 4`}` },
+    { q: `碁石を全部で ${(nt + 1) ** 2} 個使った図形は何番目の図形か求めなさい。`, a: `${nt}番目` },
+    { q: `白い碁石の個数が黒い碁石の個数より ${T} 個多くなるのは，何番目の図形か求めなさい。`, a: `${nd}番目`, ex: `(${N_} − 1)<sup>2</sup> − 4${N_} = ${T}` },
+  ];
+  return { title: '規則性（碁石の並べ方）', lead: `下の図のように，黒い碁石と白い碁石を正方形の形に並べていく。${N_}番目の図形では，1辺に (${N_} + 1) 個の碁石が並び，外側に黒い碁石，内側に白い碁石を並べる。<br>このとき，次の問いに答えなさい。`, fig, items };
+};
+KS.hyou = () => {
+  const k = pick([4, 5, 6, 7]); const rows = 4;
+  let t = `<table class="tb numtab"><tr><th></th>${range(1, k).map(c => `<th>${c}列目</th>`).join('')}</tr>`;
+  for (let r = 1; r <= rows; r++) t += `<tr><th>${r}行目</th>${range(1, k).map(c => `<td>${(r - 1) * k + c}</td>`).join('')}</tr>`;
+  t += `<tr><th>⋮</th>${range(1, k).map(() => '<td>⋮</td>').join('')}</tr></table>`;
+  const rr = R(10, 25), cc = R(1, k); const N = R(80, 200); const Nr = Math.floor((N - 1) / k) + 1, Nc = (N - 1) % k + 1;
+  // a+b+c+d = S
+  let aa; do aa = R(20, 150); while ((aa - 1) % k === k - 1); const S = 4 * aa + 2 * k + 2;
+  const items = [
+    { q: `${rr}行目の${cc}列目にある数を求めなさい。`, a: `${(rr - 1) * k + cc}` },
+    { q: `${N} は何行目の何列目にあるか求めなさい。`, a: `${Nr}行目の${Nc}列目` },
+    { q: `表の中で，縦2つ，横2つの4つの数を <span class="sq4"><span>${V('a')}</span><span>${V('b')}</span><span>${V('c')}</span><span>${V('d')}</span></span> のように四角で囲む。${V('b')}，${V('c')}，${V('d')} をそれぞれ ${V('a')} を用いた式で表しなさい。`, a: `${V('b')} = ${poly([[1, A_], [1, '']])}，${V('c')} = ${poly([[1, A_], [k, '']])}，${V('d')} = ${poly([[1, A_], [k + 1, '']])}` },
+    { q: `(3)の4つの数について，${V('b')}${V('c')} ${MINUS} ${V('a')}${V('d')} の値はいつも同じになる。その値を求め，そのわけを，文字式を用いて説明しなさい。`, a: `${k}`, ex: `${V('b')}${V('c')} ${MINUS} ${V('a')}${V('d')} = (${A_} + 1)(${A_} + ${k}) ${MINUS} ${A_}(${A_} + ${k + 1}) = ${sup(A_, 2)} + ${k + 1}${A_} + ${k} ${MINUS} ${sup(A_, 2)} ${MINUS} ${k + 1}${A_} = ${k}` },
+    { q: `(3)の4つの数の和が ${S} になるとき，${V('a')} の値を求めなさい。`, a: `${V('a')} = ${aa}`, ex: `${V('a')} + ${V('b')} + ${V('c')} + ${V('d')} = 4${A_} + ${2 * k + 2}` },
+  ];
+  return { title: '規則性（数を並べた表）', lead: `下の表のように，自然数を1から順に，1行に ${k} 個ずつ並べていく。<br>このとき，次の問いに答えなさい。`, fig: t, items };
+};
+KS.tile = () => {
+  const both = R(0, 1); const colored = n => (both ? (n % 2 ? 2 * n - 1 : 2 * n) : n);
+  const n1 = R(5, 9); const nT = R(10, 20); const T = nT * nT - colored(nT);
+  // 一意性確認
+  const sols = range(1, 60).filter(n => n * n - colored(n) === T); if (sols.length !== 1) return null;
+  const fig = (() => { const n = 5, u = 22; const sv = new Svg(n * u + 60, n * u + 30); for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const on = i === j || (both && i + j === n - 1); sv.rect(40 + j * u, 20 + i * u, u, u, { fill: on ? 'var(--shade)' : 'var(--paper)' }); } for (let i = 0; i < n; i++) { sv.text(40 + i * u + u / 2, 10, `${i + 1}`, { size: 10 }); sv.text(22, 20 + i * u + u / 2, `${i + 1}段`, { size: 10 }); } return sv.toString(); })();
+  const rule = both ? `1段目の1列目，2段目の2列目，…，${N_}段目の${N_}列目にあるタイルと，1段目の${N_}列目，2段目の(${N_} − 1)列目，…，${N_}段目の1列目にあるタイルに色を塗る。` : `1段目の1列目，2段目の2列目，3段目の3列目，…，${N_}段目の${N_}列目にあるタイルに色を塗る。`;
+  const items = [
+    { q: `${n1}段${n1}列の正方形をつくり，【規則】にしたがって色を塗った。このとき，色が塗られていないタイルの枚数を求めなさい。`, a: `${n1 * n1 - colored(n1)} 枚` },
+    { q: `${N_}段${N_}列の正方形をつくり，【規則】にしたがって色を塗った。色が塗られていないタイルの枚数が ${T} 枚となるとき，${N_} の値を求めなさい。`, a: `${N_} = ${nT}`, ex: both ? `${N_} が偶数のとき色を塗るタイルは 2${N_} 枚，奇数のとき (2${N_} − 1) 枚。` : `${sup(N_, 2)} − ${N_} = ${T}` },
+  ];
+  if (both) items.unshift({ q: `${N_} が奇数のとき，色が塗られているタイルの枚数を ${N_} を用いた式で表しなさい。`, a: `(2${N_} − 1) 枚` });
+  return { title: '規則性（タイルの塗り分け）', lead: `小さい正方形のタイルをすきまなく並べて，${N_}段${N_}列の正方形をつくり，下の【規則】にしたがって色を塗る。${panel('【規則】', rule)}下の図は，5段5列の正方形をつくり，【規則】にしたがって色を塗ったものである。<br>このとき，次の問いに答えなさい。`, fig, items };
+};
+const KS_LABEL = { matchi: '棒でつくる図形', goishi: '碁石の並べ方', hyou: '数を並べた表・文字式の説明', tile: 'タイルの塗り分け' };
+KS.calendar = () => {
+  const start = R(0, 6), days = pick([30, 31]); const hh = R(2, 3), ww = R(2, 3);
+  let cells = []; for (let i = 0; i < start; i++) cells.push(''); for (let d = 1; d <= days; d++) cells.push(d); while (cells.length % 7) cells.push('');
+  const rows = []; for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+  // 例として囲む位置
+  const valid = []; for (let r = 0; r + hh <= rows.length; r++) for (let c = 0; c + ww <= 7; c++) { let ok = true; for (let i = 0; i < hh; i++) for (let j = 0; j < ww; j++) if (rows[r + i][c + j] === '') ok = false; if (ok) valid.push([r, c]); }
+  const [er, ec] = pick(valid); const inBox = (r, c) => r >= er && r < er + hh && c >= ec && c < ec + ww;
+  const tb = `<table class="tb numtab cal"><tr>${'日月火水木金土'.split('').map(d => `<th>${d}</th>`).join('')}</tr>${rows.map((r, i) => `<tr>${r.map((v, j) => { if (!inBox(i, j)) return `<td>${v}</td>`; const bd = []; if (i === er) bd.push('border-top'); if (i === er + hh - 1) bd.push('border-bottom'); if (j === ec) bd.push('border-left'); if (j === ec + ww - 1) bd.push('border-right'); return `<td class="hit" style="${bd.map(b => b + ':3px solid var(--ink)').join(';')}">${v}</td>`; }).join('')}</tr>`).join('')}</table>`;
+  const a0 = rows[er][ec]; const w1 = ww - 1, h7 = 7 * (hh - 1); const diff = w1 * h7;
+  const P = (a0 + w1) * (a0 + h7), Qv = a0 * (a0 + h7 + w1);
+  const [ar, ac] = pick(valid); const aa = rows[ar][ac]; const S = 4 * aa + 2 * (w1 + h7);
+  const items = [
+    { q: `図の四角で囲んだ数の4すみの数のうち，右上と左下の数の積を P，左上と右下の数の積を Q とする。P − Q の値を求めなさい。`, a: `${P} − ${Qv} = ${diff}` },
+    { q: `4すみの数のうち，左上の数を ${N_} として，残りの3つの数を ${N_} を用いてそれぞれ表しなさい（右上，左下，右下の順）。`, a: `${poly([[1, N_], [w1, '']])}，${poly([[1, N_], [h7, '']])}，${poly([[1, N_], [h7 + w1, '']])}` },
+    { q: `カレンダーのどこを同じ形で囲んでも，P − Q の値は(1)と同じになる。このことを，${N_} を用いて説明しなさい。`, a: `P − Q = (${N_} + ${w1})(${N_} + ${h7}) − ${N_}(${N_} + ${h7 + w1}) = ${diff}（${N_} をふくむ項が消えるので，いつも ${diff} になる）` },
+    { q: `同じ形で囲んだとき，4すみの数の和が ${S} になった。左上の数を求めなさい。`, a: `${aa}`, ex: `4すみの数の和は 4${N_} + ${2 * (w1 + h7)}` },
+  ];
+  return { title: '規則性（カレンダー）', lead: `右の図は，ある月のカレンダーである。このカレンダーで，縦 ${hh} つ，横 ${ww} つの数を四角で囲む。<br>このとき，次の問いに答えなさい。`, fig: tb, items };
+};
+KS_LABEL.calendar = 'カレンダーの数の性質';
+KS.pyramid = () => {
+  const odd = R(0, 1); const d = odd ? 2 : 1; const ex = odd ? 2 * R(2, 9) + 1 : R(3, 20); const row1 = [0, 1, 2, 3].map(i => ex + d * i);
+  const rows = [row1]; while (rows[rows.length - 1].length > 1) { const r = rows[rows.length - 1]; rows.push(r.slice(1).map((v, i) => v + r[i])); }
+  const bottom = rows[3][0]; // = 8a + 12d
+  const sv = new Svg(260, 170); rows.forEach((r, i) => r.forEach((v, j) => { const x = 145 + (j - (r.length - 1) / 2) * 44, y = 22 + i * 40; sv.circle(x, y, 17); sv.text(x, y, i === 0 ? v : (i === 3 ? '' : v), { size: 12 }); if (i < 3) { } }));
+  sv.text(8, 22, '1段目', { size: 10, anchor: 'start' }).text(8, 142, '4段目', { size: 10, anchor: 'start' });
+  const expr = odd ? `16${N_} + 32` : `8${N_} + 12`; const mul = odd ? 16 : 4; const fn = n => (odd ? 16 * n + 32 : 8 * n + 12);
+  const nt = R(10, 60); const S = fn(nt); const first = odd ? 2 * nt + 1 : nt;
+  const items = [
+    { q: `図の4段目の数を求めなさい。`, a: `${bottom}` },
+    { q: odd ? `${N_} を自然数として，1段目の左端の数を 2${N_} + 1 と表すとき，4段目の数を ${N_} を用いた式で表しなさい。` : `1段目の左端の数を ${N_} とするとき，4段目の数を ${N_} を用いた式で表しなさい。`, a: expr, ex: odd ? `1段目は 2${N_}+1，2${N_}+3，2${N_}+5，2${N_}+7。4段目は (1段目の左端) + 3×(2番目) + 3×(3番目) + (右端)` : `4段目は ${N_} + 3(${N_}+1) + 3(${N_}+2) + (${N_}+3)` },
+    { q: `1段目にどのような${odd ? '連続する4つの奇数' : '連続する4つの整数'}を入れても，4段目の数はある数の倍数になる。その倍数として考えられる最も大きい自然数を答えなさい。`, a: `${mul}`, ex: odd ? `16${N_} + 32 = 16(${N_} + 2)` : `8${N_} + 12 = 4(2${N_} + 3)，2${N_} + 3 は奇数` },
+    { q: `4段目の数が ${S} になるとき，1段目の左端の数を求めなさい。`, a: `${first}` },
+  ];
+  return { title: '規則性（数を積み上げる図）', lead: `下の図のように，1段目に${odd ? '連続する4つの奇数' : '連続する4つの整数'}を小さい順に入れ，となり合う2つの数の和をその下の段に入れていき，4段目の数を求める。図は，1段目の左端が ${ex} の場合で，4段目の数は空欄にしてある。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+KS.checker = () => {
+  const fig = seqFigs((s, n, x, y) => { const u = 12; for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) s.rect(x + j * u, y + i * u, u, u, { fill: (i + j) % 2 === 0 ? 'var(--ink)' : 'var(--paper)' }); }, [1, 2, 3, 4], n => n * 12, 48);
+  const n1 = pick([5, 7, 9]), n2 = pick([6, 8, 10]); const no = 2 * R(6, 15) + 1; const Bk = (no * no + 1) / 2;
+  const items = [
+    { q: `${n1}番目の図形の，黒いタイルと白いタイルの枚数をそれぞれ求めなさい。`, a: `黒 ${(n1 * n1 + 1) / 2} 枚，白 ${(n1 * n1 - 1) / 2} 枚` },
+    { q: `${N_} が偶数のとき，${N_}番目の図形の黒いタイルの枚数を ${N_} を用いた式で表しなさい。`, a: `${frac(sup(N_, 2), 2)} 枚`, ex: `${n2}番目は黒 ${n2 * n2 / 2} 枚` },
+    { q: `${N_} が奇数のとき，${N_}番目の図形の黒いタイルの枚数を ${N_} を用いた式で表しなさい。`, a: `${frac(sup(N_, 2) + ' + 1', 2)} 枚`, ex: '奇数番目は黒が白より1枚多い。' },
+    { q: `黒いタイルが ${Bk} 枚となるのは何番目の図形か求めなさい。`, a: `${no}番目` },
+  ];
+  return { title: '規則性（市松模様のタイル）', lead: `下の図のように，1辺1 cm の黒と白の正方形のタイルを，左上を黒として交互に，1番目は縦横1枚ずつ，2番目は縦横2枚ずつ，…と正方形に並べていく。<br>このとき，次の問いに答えなさい。`, fig, items };
+};
+KS.shuuki = () => {
+  const m = R(3, 5); const per = range(1, m).concat(range(2, m - 1).reverse()); const P = per.length; const seq = i => per[(i - 1) % P];
+  const k = R(40, 99); const N = R(50, 120); let sum = 0; for (let i = 1; i <= N; i++) sum += seq(i); let cnt1 = 0; for (let i = 1; i <= N; i++) if (seq(i) === 1) cnt1++;
+  const shown = range(1, P + 4).map(seq).join('，');
+  const items = [
+    { q: `${k}番目の数を求めなさい。`, a: `${seq(k)}`, ex: `${P} 個ごとに同じ並びをくり返す。${k} = ${P} × ${Math.floor((k - 1) / P)} + ${(k - 1) % P + 1}` },
+    { q: `1番目から ${N} 番目までに，1 は何回現れるか求めなさい。`, a: `${cnt1} 回` },
+    { q: `1番目から ${N} 番目までの数の和を求めなさい。`, a: `${sum}`, ex: `1回のくり返しの和は ${per.reduce((a, b) => a + b, 0)}` },
+  ];
+  return { title: '規則性（くり返す数の列）', lead: `次のように，ある規則にしたがって数が並んでいる。<div class="data">${shown}，…</div>このとき，次の問いに答えなさい。`, items };
+};
+KS.overlap = () => {
+  const h = R(3, 6), w = R(3, 6), o = R(1, w - 1); const sh = w - o; const A = h * w, Ov = h * o; const f = n => n * A - (n - 1) * Ov;
+  const fig = seqFigs((s, n, x, y) => { const u = 7; for (let i = 0; i < n; i++) s.rect(x + i * sh * u, y + i * 4, w * u, h * u, { fill: 'var(--paper)' }); for (let i = 0; i < n; i++) s.rect(x + i * sh * u, y + i * 4, w * u, h * u); }, [1, 2, 3], n => ((n - 1) * sh + w) * 7, h * 7 + 12);
+  const nt = R(8, 30); const S = f(nt);
+  const items = [
+    { q: `5番目の図形の面積を求めなさい。`, a: `${f(5)} cm<sup>2</sup>` },
+    { q: `${N_}番目の図形の面積を ${N_} を用いた式で表しなさい。`, a: `(${poly([[A - Ov, N_], [Ov, '']])}) cm<sup>2</sup>`, ex: `${A} × ${N_} − ${Ov} × (${N_} − 1)` },
+    { q: `図形の面積が ${S} cm<sup>2</sup> となるのは何番目の図形か求めなさい。`, a: `${nt}番目` },
+  ];
+  return { title: '規則性（重ねて並べた長方形）', lead: `縦 ${h} cm，横 ${w} cm の長方形の紙を，下の図のように，となりの紙と横に ${o} cm ずつ重なるようにずらして並べ，全体を1つの図形とみる。1番目は紙1枚，2番目は紙2枚，…とする。図形の面積は，紙が重なった部分も1回だけ数える。<br>このとき，次の問いに答えなさい。`, fig, items };
+};
+Object.assign(KS_LABEL, { pyramid: '数を積み上げる図（倍数の説明）', checker: '市松模様のタイル', shuuki: 'くり返す数の列', overlap: '重ねて並べた長方形の面積' });
+KS.sankaku = () => {
+  const fig = seqFigs((s, n, x, y) => { const u = 15; for (let r = 0; r < n; r++) for (let j = 0; j <= r; j++) { const edge = r === n - 1 || j === 0 || j === r; s.circle(x + (n - 1) * u / 2 - r * u / 2 + j * u + 7, y + r * u * 0.87 + 7, 6, { fill: edge && n > 1 ? 'var(--ink)' : 'var(--paper)' }); } }, [1, 2, 3, 4, 5], n => n * 15 + 6, 5 * 13 + 14);
+  const T = n => n * (n + 1) / 2; const out = n => (n === 1 ? 1 : 3 * (n - 1)); const n1 = R(6, 10), nt = R(12, 40); const nw = R(8, 20);
+  const items = [
+    { q: `${n1}番目の図形で，使う碁石の個数を求めなさい。`, a: `${T(n1)} 個` },
+    { q: `${N_}番目の図形で，使う碁石の個数を ${N_} を用いた式で表しなさい。`, a: `${frac(`${N_}(${N_} + 1)`, 2)} 個`, ex: `1 + 2 + … + ${N_}` },
+    { q: `碁石を全部で ${T(nt)} 個使ってできる図形は何番目の図形か求めなさい。`, a: `${nt}番目` },
+    { q: `2番目以降の図形では，外側に黒い碁石，内側に白い碁石を並べる。${N_}番目の図形の黒い碁石の個数を ${N_} を用いた式で表し，${nw}番目の図形の白い碁石の個数を求めなさい。`, a: `黒 3${N_} − 3 個，白 ${T(nw) - out(nw)} 個` },
+  ];
+  return { title: '規則性（碁石を三角形に並べる）', lead: `下の図のように，碁石を正三角形の形に並べていく。1番目は1個，2番目は上から1個，2個，3番目は上から1個，2個，3個，…と並べる。<br>このとき，次の問いに答えなさい。`, fig, items };
+};
+KS_LABEL.sankaku = '碁石を三角形に並べる';
+KS.teigi = () => {
+  const t = R(0, 2);
+  if (t === 0) { const dv = n => range(1, n).filter(v => n % v === 0).length; const a1 = pick([12, 18, 20, 24, 28, 30, 36]); const N = pick([20, 30, 40, 50]); const primes = range(1, N).filter(isPrime); const sq = range(1, 100).filter(n => dv(n) === 3);
+    return { title: '新しい記号の定義（約数の個数）', lead: `自然数 ${N_} について，${N_} の正の約数の個数を〈${N_}〉で表すことにする。例えば，6 の正の約数は 1，2，3，6 の4個なので，〈6〉= 4 である。<br>このとき，次の問いに答えなさい。`, items: [
+      { q: `〈${a1}〉の値を求めなさい。`, a: `${dv(a1)}` },
+      { q: `1 から ${N} までの自然数のうち，〈${N_}〉= 2 となる ${N_} は何個あるか求めなさい。`, a: `${primes.length} 個`, ex: '〈n〉= 2 となるのは，n が素数のとき。' },
+      { q: `1 から 100 までの自然数のうち，〈${N_}〉= 3 となる ${N_} をすべて求めなさい。`, a: sq.join('，'), ex: '素数の2乗のとき，約数は 1，p，p² の3個になる。' },
+      { q: `〈${N_}〉が奇数になるのは，${N_} がどのような数のときか答えなさい。`, a: `${N_} が平方数（ある自然数の2乗）のとき`, ex: '約数は，積が n になる2つずつの組に分けられる。組にならないのは √n が自然数のときだけ。' },
+    ] }; }
+  if (t === 1) { const x1 = R(3, 9), y1 = R(2, 8), x2 = -R(1, 6), y2 = R(2, 6); const f = (a, b) => a * b - a - b; const c = R(2, 6), rhs = R(4, 20); const xs = q(rhs + c, c - 1); const T = pick([12, 18, 20, 24]); const cnt = range(1, T).filter(v => T % v === 0).length;
+    if (!xs.isInt()) return null;
+    return { title: '新しい記号の定義（計算のきまり）', lead: `2つの数 ${A_}，${B_} について，記号 ◎ を次のように定める。<div class="panel">${A_} ◎ ${B_} = ${A_}${B_} − ${A_} − ${B_}</div>例えば，4 ◎ 3 = 4 × 3 − 4 − 3 = 5 である。<br>このとき，次の問いに答えなさい。`, items: [
+      { q: `${x1} ◎ ${y1} の値を求めなさい。`, a: `${f(x1, y1)}` },
+      { q: `(${num(x2)}) ◎ ${y2} の値を求めなさい。`, a: num(f(x2, y2)) },
+      { q: `${X} ◎ ${c} = ${rhs} となる ${X} の値を求めなさい。`, a: `${X} = ${qh(xs)}`, ex: `${c}${X} − ${X} − ${c} = ${rhs}` },
+      { q: `${A_} ◎ ${B_} = ${T - 1} となる自然数 ${A_}，${B_} の組 (${A_}, ${B_}) は全部で何組あるか求めなさい。`, a: `${cnt} 組`, ex: `${A_} ◎ ${B_} + 1 = (${A_} − 1)(${B_} − 1) より，(${A_} − 1)(${B_} − 1) = ${T}` },
+    ] }; }
+  const step = n => (n % 2 ? 3 * n + 1 : n / 2); const cnt = n => { let c = 0; while (n !== 1) { n = step(n); c++; } return c; }; const s0 = pick([6, 7, 9, 10, 12, 11]); const seq = [s0]; while (seq[seq.length - 1] !== 1) seq.push(step(seq[seq.length - 1]));
+  const k = pick([3, 4, 5, 6, 7, 8]); const list = range(2, 30).filter(n => cnt(n) === k); if (!list.length) return null;
+  return { title: '新しい操作の定義（数の変化）', lead: `自然数に対して，次の【操作】を行う。${panel('【操作】', '偶数ならば2でわる。奇数ならば3倍して1を加える。')}この【操作】を，結果が 1 になるまでくり返す。例えば，5 から始めると，5 → 16 → 8 → 4 → 2 → 1 となり，【操作】を5回行って1になる。<br>このとき，次の問いに答えなさい。`, items: [
+    { q: `${s0} から始めたとき，1 になるまでに【操作】を何回行うか求めなさい。`, a: `${seq.length - 1} 回（${seq.join(' → ')}）` },
+    { q: `2 から 30 までの自然数のうち，【操作】をちょうど ${k} 回行って 1 になる数をすべて求めなさい。`, a: list.join('，'), ex: '1 から逆にたどる（2倍する，または 1 をひいて3でわる）と見つけやすい。' },
+    { q: `ある自然数から始めて【操作】を2回行ったところ，10 になった。はじめの自然数として考えられる数をすべて求めなさい。`, a: '40，6', ex: '10 の1つ前は 20 または 3。20 の前は 40 または（19÷3は整数でないので）なし，3 の前は 6。' },
+  ] };
+};
+KS_LABEL.teigi = '新しい記号・操作の定義';
+
+// ===== 文章題・動点・関数の利用 =====
+const SO = {};
+function hm(hq) { // 時間(Q) → ○時間○分
+  const mins = hq.mul(60); if (!mins.isInt()) return `${qh(hq)} 時間`; const h = Math.floor(mins.n / 60), m = mins.n % 60; return `${h ? h + ' 時間' : ''}${m ? (h ? ' ' : '') + m + ' 分' : ''}` || '0 分';
+}
+function miniGraph(pts, T, Hm) { const sv = new Svg(120, 90); const X0 = 14, Y0 = 78, sx = 96 / T, sy = 60 / Hm; sv.line(X0, Y0, 116, Y0, { cls: 'axis' }).line(X0, Y0, X0, 6, { cls: 'axis' }).text(X0 - 6, Y0 + 7, 'O', { size: 9 }).text(114, Y0 + 8, 'x', { size: 10, italic: true }).text(X0 + 6, 8, 'y', { size: 10, italic: true }); sv.pline(pts.map(p => [X0 + p[0] * sx, Y0 - p[1] * sy]), { w: 1.6 }); return sv.toString(); }
+SO.douten = () => {
+  const h = R(3, 8), w = R(4, 10); if (h === w) return null; const v = pick([1, 1, 2]); if (v === 2 && (h % 2 || w % 2)) return null;
+  const T1 = q(h, v), T2 = q(h + w, v), T3 = q(2 * h + w, v); const Hm = w * h / 2;
+  const x1 = R(1, T1.v > 1 ? Math.floor(T1.v) : 1); const y1 = q(w * v * x1, 2);
+  const xa = q(R(1, 2 * T1.v - 1), 2); const k = xa.mul(w * v).div(2); if (!k.mul(2).isInt()) return null;
+  const xb = q(2 * h + w, v).sub(xa);
+  const shapes = [
+    [[0, 0], [T1.v, Hm], [T2.v, Hm], [T3.v, 0]],
+    [[0, 0], [T3.v / 2, Hm], [T3.v, 0]],
+    [[0, 0], [T1.v, Hm], [T3.v, Hm]],
+    [[0, 0], [w / v, Hm], [(w + h) / v, Hm], [T3.v, 0]],
+  ];
+  const order = shuffle([0, 1, 2, 3]); const ans = KANA[order.indexOf(0)];
+  const gchoices = `<div class="graphs">${order.map((o, i) => `<div><b>${KANA[i]}</b>${miniGraph(shapes[o], T3.v, Hm)}</div>`).join('')}</div>`;
+  // 図
+  const sc = 150 / Math.max(h, w); const A = [30, 20], B = [30, 20 + h * sc], C = [30 + w * sc, 20 + h * sc], D = [30 + w * sc, 20];
+  const sv = new Svg(w * sc + 70, h * sc + 50); sv.poly([A, B, C, D]); const P = lerp(A, B, 0.55); sv.poly([A, P, D], { fill: 'var(--shade)' }).poly([A, B, C, D]).dot(P[0], P[1]);
+  const c0 = cen([A, B, C, D]); sv.label(A, 'A', c0).label(B, 'B', c0).label(C, 'C', c0).label(D, 'D', c0).text(P[0] - 12, P[1], 'P');
+  sv.text(A[0] - 20, A[1] + (B[1] - A[1]) * 0.82, `${h}cm`, { size: 11 }).text((A[0] + D[0]) / 2, A[1] - 10, `${w}cm`, { size: 11 });
+  const items = [
+    { q: `${X} = ${x1} のとき，${Y} の値を求めなさい。`, a: `${Y} = ${qh(y1)}` },
+    { q: `${X} と ${Y} の関係を表すグラフとして最も適当なものを，次のア〜エから1つ選び，記号で答えなさい。${gchoices}`, a: ans },
+    { q: `点Pが辺CD上にあるとき，${Y} を ${X} の式で表しなさい。`, a: lineEq(q(-w * v, 2), q(w * (2 * h + w), 2)), ex: `PD = ${2 * h + w} − ${v === 1 ? '' : v}${X}（cm）より ${Y} = ${frac(1, 2)} × ${w} × PD` },
+    { q: `△APDの面積が ${qh(k)} cm<sup>2</sup> となるときの ${X} の値をすべて求めなさい。`, a: `${X} = ${qh(xa)}, ${qh(xb)}` },
+  ];
+  return { title: '動点と面積', lead: `下の図のように，AB = ${h} cm，AD = ${w} cm の長方形ABCDがある。点Pは頂点Aを出発し，辺AB，BC，CD上を頂点B，Cを通って頂点Dまで毎秒 ${v} cm の速さで動き，頂点Dで止まる。点Pが頂点Aを出発してから ${X} 秒後の△APDの面積を ${Y} cm<sup>2</sup> とする。ただし，点Pが頂点A，Dにあるときは ${Y} = 0 とする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+SO.ryoukin = () => {
+  const ctx = pick([{ n: '電気料金', u: 'kWh', xn: '使用量', uu: 1 }, { n: 'レンタサイクルの料金', u: '時間', xn: '利用時間', uu: 1 }, { n: '写真のプリント料金', u: '枚', xn: '枚数', uu: 1 }, { n: 'スマートフォンのデータ通信料金', u: 'GB', xn: 'データ使用量', uu: 1 }]);
+  const scale = pick([[100, 10, 20], [200, 20, 40], [500, 50, 100]]); // 基本料金の刻み・単価の刻み
+  const p = R(2, 6) * scale[0], qa = R(3, 8) * scale[1]; let r, s, xs;
+  retry(() => { s = R(1, 7) * scale[1]; if (s >= qa) return null; xs = R(4, 20); r = p + (qa - s) * xs; return r % scale[0] === 0 || r % 10 === 0 ? true : null; });
+  const x1 = R(2, xs * 2); const XMAX = Math.max(xs * 2, 10);
+  const pl = new Plane(-XMAX * 0.08, XMAX, -(r + s * XMAX) * 0.08, (r + s * XMAX) * 1.15, 290, { sy: 230 / ((r + s * XMAX) * 1.23) });
+  pl.fn(x => p + qa * x, 0, XMAX, { w: 1.6 }).fn(x => r + s * x, 0, XMAX, { dash: '5 3', w: 1.6 });
+  pl.tag(x => p + qa * x, 'A社', { dx: 4, dy: -8 }).tag(x => r + s * x, 'B社', { dx: 4, dy: 12 });
+  const items = [
+    { q: `A社で，${ctx.xn}が ${x1} ${ctx.u}のときの料金を求めなさい。`, a: `${p + qa * x1} 円` },
+    { q: `B社について，${ctx.xn}が ${X} ${ctx.u}のときの料金を ${Y} 円とする。${Y} を ${X} の式で表しなさい。`, a: lineEq(s, r) },
+    { q: `A社とB社の料金が等しくなるのは，${ctx.xn}が何${ctx.u}のときか求めなさい。`, a: `${xs} ${ctx.u}`, ex: `${p} + ${qa}${X} = ${r} + ${s}${X}` },
+    { q: `B社の料金のほうがA社の料金より安くなるのは，${ctx.xn}が何${ctx.u}より多いときか答えなさい。`, a: `${xs} ${ctx.u}より多いとき` },
+  ];
+  const tb = tableH(['会社', '基本料金', `1${ctx.u}あたりの料金`], [['A社', `${p} 円`, `${qa} 円`], ['B社', `${r} 円`, `${s} 円`]]);
+  return { title: '一次関数の利用（料金プラン）', lead: `ある${ctx.n}は，次の表のように，会社ごとに基本料金と，1${ctx.u}あたりの料金が決まっている。料金は「基本料金 ＋ 1${ctx.u}あたりの料金 × ${ctx.xn}」で計算する。下のグラフは，${ctx.xn}を ${X} ${ctx.u}，料金を ${Y} 円としたときの，A社（実線）とB社（破線）の ${X} と ${Y} の関係を表したものである。<br>このとき，次の問いに答えなさい。${tb}`, fig: pl.toString(), items };
+};
+SO.renritsu = () => {
+  const t = R(0, 2);
+  if (t === 0) { // 道のり
+    const a = pick([3, 4]), b = pick([5, 6]); const x = R(4, 20) / 2, y = R(4, 20) / 2; const Tm = (x / a + y / b) * 60; if (!Number.isInteger(Tm) || Tm % 1) return null; const D = x + y;
+    const tq = q(Tm, 60);
+    return { title: '連立方程式の利用（速さ）', lead: `Aさんは，峠をこえて ${fmtDec(D, 1)} km 離れた祖父の家に行く。Aさんの家から峠までは時速 ${a} km，峠から祖父の家までは時速 ${b} km で歩いたら，合計 ${hm(tq)} かかった。Aさんの家から峠までの道のりを ${X} km，峠から祖父の家までの道のりを ${Y} km とする。<br>このとき，次の問いに答えなさい。`, items: [
+      { q: `${X}，${Y} についての連立方程式をつくりなさい。`, a: `<span class="sys"><span>${X} + ${Y} = ${fmtDec(D, 1)}</span><span>${frac(X, a)} + ${frac(Y, b)} = ${qh(tq)}</span></span>` },
+      { q: `Aさんの家から峠までの道のりと，峠から祖父の家までの道のりをそれぞれ求めなさい。`, a: `家から峠まで ${fmtDec(x, 1)} km，峠から祖父の家まで ${fmtDec(y, 1)} km` },
+    ] };
+  }
+  if (t === 1) { // 代金と個数
+    const it = pick([['あんまん', '肉まん'], ['りんご', 'なし'], ['大人の入場券', '子どもの入場券'], ['ノート', 'スケッチブック']]); const p = R(8, 20) * 10, s = p + R(2, 8) * 10; const x = R(5, 40), y = R(5, 40);
+    const cnt = it[0].includes('券') ? '枚' : it[0] === 'ノート' ? '冊' : '個';
+    return { title: '連立方程式の利用（代金と個数）', lead: `1${cnt} ${p} 円の${it[0]}と1${cnt} ${s} 円の${it[1]}を合わせて ${x + y} ${cnt}買ったところ，代金の合計は ${p * x + s * y} 円であった。買った${it[0]}を ${X} ${cnt}，${it[1]}を ${Y} ${cnt}とする。<br>このとき，次の問いに答えなさい。`, items: [
+      { q: `${X}，${Y} についての連立方程式をつくりなさい。`, a: `<span class="sys"><span>${X} + ${Y} = ${x + y}</span><span>${p}${X} + ${s}${Y} = ${p * x + s * y}</span></span>` },
+      { q: `買った${it[0]}と${it[1]}の${cnt === '個' ? '個数' : cnt === '枚' ? '枚数' : '冊数'}をそれぞれ求めなさい。`, a: `${it[0]} ${x} ${cnt}，${it[1]} ${y} ${cnt}` },
+    ] };
+  }
+  // 増減
+  const x = R(8, 30) * 10, y = R(8, 30) * 10; const a = pick([5, 10, 20]), b = pick([5, 10, 15]); const dx = x * a / 100, dy = y * b / 100; if (!Number.isInteger(dx) || !Number.isInteger(dy) || dx === dy) return null;
+  const diff = dx - dy; const w = pick([['男子', '女子', '生徒', '人'], ['Aの品物', 'Bの品物', '品物', '個']]);
+  return { title: '連立方程式の利用（割合）', lead: `ある中学校の昨年度の${w[2]}数は，${w[0]}と${w[1]}を合わせて ${x + y} ${w[3]}であった。今年度は，昨年度と比べて${w[0]}が ${a}% 増え，${w[1]}が ${b}% 減ったので，全体で ${Math.abs(diff)} ${w[3]}${diff > 0 ? '増えた' : '減った'}。昨年度の${w[0]}を ${X} ${w[3]}，${w[1]}を ${Y} ${w[3]}とする。<br>このとき，次の問いに答えなさい。`.replace('ある中学校の昨年度の品物数は', 'ある店の昨年度の品物の販売数は').replace(/今年度は，昨年度と比べてAの品物/, '今年度は，昨年度と比べてAの品物'), items: [
+    { q: `${X}，${Y} についての連立方程式をつくりなさい。`, a: `<span class="sys"><span>${X} + ${Y} = ${x + y}</span><span>${frac(a, 100)}${X} ${MINUS} ${frac(b, 100)}${Y} = ${num(diff)}</span></span>` },
+    { q: `今年度の${w[0]}と${w[1]}はそれぞれ何${w[3]}か求めなさい。`, a: `${w[0]} ${x + dx} ${w[3]}，${w[1]} ${y - dy} ${w[3]}`, ex: `昨年度は${w[0]} ${x} ${w[3]}，${w[1]} ${y} ${w[3]}` },
+  ] };
+};
+SO.tank = () => {
+  const t1 = pick([3, 4, 5]), t2 = t1 + R(2, 5); const V = lcm(t1, t2) * pick([50, 100, 200]); if (V > 6000) return null; const r1 = V / t1, r2 = V / t2;
+  const s = pick([1, 2, 1.5, 2.5].filter(v => v < t1)); const rest = (V - r1 * s) / r2; const T = s + rest; if (!Number.isInteger(T * 2)) return null;
+  const pl = new Plane(-0.6, t2 + 0.8, -V * 0.08, V * 1.12, 280, { sy: 200 / (V * 1.2) }); pl.fn(x => V - r2 * x, 0, t2, { w: 1.6 }); pl.lab([0, V], `${V}`, -18, 0, { size: 10 }); pl.lab([t2, 0], `${t2}`, 0, 10, { size: 10 });
+  const items = [
+    { q: `強運転では，1時間あたりに減る水の量は何 mL か求めなさい。`, a: `${r1} mL` },
+    { q: `タンクを満水にしてから弱運転だけで使ったとき，${Y} を ${X} の式で表しなさい。また，${X} の変域も答えなさい。`, a: `${lineEq(-r2, V)}（0 ≦ ${X} ≦ ${t2}）` },
+    { q: `タンクを満水にしてから強運転で使い始め，途中で弱運転に切りかえたところ，使い始めてから ${hm(q(Math.round(T * 60), 60))}後にタンクが空になった。弱運転に切りかえたのは，使い始めてから何時間何分後か求めなさい。`, a: `${hm(q(Math.round(s * 60), 60))}後`, ex: `強運転を ${V_('t')} 時間とすると ${r1}${V_('t')} + ${r2}(${fmtDec(T)} − ${V_('t')}) = ${V}` },
+  ];
+  return { title: '一次関数の利用（加湿器の水の量）', lead: `ある加湿器は，強運転と弱運転の2段階の運転方法があり，タンクが満水のときの水の量は ${V} mL である。それぞれの運転方法では，常に一定の割合で水が減り，満水の状態から使うと，強運転では ${t1} 時間，弱運転では ${t2} 時間でタンクが空になる。使い始めてから ${X} 時間後のタンクの水の量を ${Y} mL とする。下のグラフは，弱運転だけで使ったときの ${X} と ${Y} の関係を表したものである。<br>このとき，次の問いに答えなさい。`, fig: pl.toString(), items };
+};
+const V_ = V;
+SO.setsumei = () => {
+  const t = R(0, 3);
+  if (t === 0) { const a = R(1, 9), b = R(1, 9); if (a === b) return null; const n = 10 * a + b, m = 10 * b + a;
+    return { title: '文字式による説明（2けたの数）', lead: `2けたの自然数と，その数の十の位の数と一の位の数を入れかえてできる数の和は，11の倍数になる。例えば，${n} の場合は ${n} + ${m} = ${n + m} = 11 × ${(n + m) / 11} となる。<br>このとき，次の問いに答えなさい。`, items: [
+      { q: `もとの自然数の十の位の数を ${A_}，一の位の数を ${B_} とするとき，もとの自然数と，入れかえてできる数を，それぞれ ${A_}，${B_} を用いた式で表しなさい。`, a: `もとの数 10${A_} + ${B_}，入れかえた数 10${B_} + ${A_}` },
+      { q: `2つの数の和が11の倍数になることを説明しなさい。`, a: `(10${A_} + ${B_}) + (10${B_} + ${A_}) = 11${A_} + 11${B_} = 11(${A_} + ${B_})。${A_} + ${B_} は自然数だから，11(${A_} + ${B_}) は11の倍数である。` },
+      { q: `2つの数の差（大きい方から小さい方をひいた数）は何の倍数になるか。最も大きい自然数を答えなさい。ただし，${A_} ≠ ${B_} とする。`, a: `9 の倍数（(10${A_} + ${B_}) − (10${B_} + ${A_}) = 9(${A_} − ${B_})）` },
+    ] };
+  }
+  if (t === 1) { const nn = R(3, 30); const nn2 = R(8, 40); if (nn2 === nn) return null; const e = [2 * nn - 1, 2 * nn + 1];
+    return { title: '文字式による説明（連続する奇数）', lead: `連続する2つの奇数の積に1を加えると，4の倍数になる。例えば，${e[0]} と ${e[1]} の場合は，${e[0]} × ${e[1]} + 1 = ${e[0] * e[1] + 1} = 4 × ${(e[0] * e[1] + 1) / 4} となる。<br>このとき，次の問いに答えなさい。`, items: [
+      { q: `${N_} を整数として，小さい方の奇数を 2${N_} − 1 と表すとき，大きい方の奇数を ${N_} を用いた式で表しなさい。`, a: `2${N_} + 1` },
+      { q: `連続する2つの奇数の積に1を加えると4の倍数になることを説明しなさい。`, a: `(2${N_} − 1)(2${N_} + 1) + 1 = 4${sup(N_, 2)} − 1 + 1 = 4${sup(N_, 2)}。${sup(N_, 2)} は整数だから，4${sup(N_, 2)} は4の倍数である。` },
+      { q: `連続する2つの奇数の積に1を加えた数が ${4 * nn2 * nn2} になるとき，2つの奇数を求めなさい。ただし，2つの奇数はどちらも正とする。`, a: `${2 * nn2 - 1} と ${2 * nn2 + 1}`, ex: `4${sup(N_, 2)} = ${4 * nn2 * nn2} より ${N_} = ${nn2}` },
+    ] };
+  }
+  if (t === 2) { const c = R(100, 999); const d = String(c).split('').map(Number); const sm = d[0] + d[1] + d[2];
+    return { title: '文字式による説明（3けたの数）', lead: `3けたの自然数から，その数の各位の数の和をひくと，9の倍数になる。例えば，${c} の場合は，${c} − (${d.join(' + ')}) = ${c - sm} = 9 × ${(c - sm) / 9} となる。<br>このとき，次の問いに答えなさい。`, items: [
+      { q: `3けたの自然数の百の位の数を ${A_}，十の位の数を ${B_}，一の位の数を ${V('c')} とするとき，この3けたの自然数を ${A_}，${B_}，${V('c')} を用いた式で表しなさい。`, a: `100${A_} + 10${B_} + ${V('c')}` },
+      { q: `3けたの自然数から，その数の各位の数の和をひくと9の倍数になることを説明しなさい。`, a: `(100${A_} + 10${B_} + ${V('c')}) − (${A_} + ${B_} + ${V('c')}) = 99${A_} + 9${B_} = 9(11${A_} + ${B_})。11${A_} + ${B_} は整数だから9の倍数である。` },
+    ] };
+  }
+  const k = R(3, 5); const a0 = R(4, 30); const ex = range(a0, a0 + k - 1); const sum = ex.reduce((s, v) => s + v, 0);
+  const odd = k % 2 === 1; const cm = R(15, 60);
+  return { title: '文字式による説明（連続する整数）', lead: `連続する${k}つの整数の和について考える。例えば，${ex.join('，')} の和は ${sum} である。<br>このとき，次の問いに答えなさい。`, items: odd ? [
+    { q: `中央の数を ${N_} として，連続する${k}つの整数を ${N_} を用いて表しなさい。`, a: range(-(k - 1) / 2, (k - 1) / 2).map(d => poly([[1, N_], [d, '']])).join('，') },
+    { q: `連続する${k}つの整数の和は，どのような数になるか。「中央の数」という語句を用いて答え，そのことを説明しなさい。`, a: `中央の数の ${k} 倍になる。（和を計算すると ${k}${N_} となるため）` },
+    { q: `連続する${k}つの整数の和が ${k * cm} になるとき，最も大きい整数を求めなさい。`, a: `${cm + (k - 1) / 2}` },
+  ] : [
+    { q: `最も小さい数を ${N_} として，連続する${k}つの整数の和を ${N_} を用いた式で表しなさい。`, a: poly([[k, N_], [k * (k - 1) / 2, '']]) },
+    { q: `連続する${k}つの整数の和が ${k * cm + k * (k - 1) / 2} になるとき，最も小さい整数を求めなさい。`, a: `${cm}` },
+  ] };
+};
+const SO_LABEL = { douten: '動点と面積（グラフ）', ryoukin: '料金プラン（一次関数の利用）', tank: '水の量の変化（一次関数の利用）', renritsu: '連立方程式の文章題', setsumei: '文字式による説明' };
+SO.diagram = () => {
+  const v1 = pick([50, 60, 70, 80]), v2 = v1 + pick([20, 30, 40, 50, 60]); const t0 = R(3, 12); const T = q(v2 * t0, v2 - v1); if (!T.isInt()) return null;
+  const meet = v1 * T.n; const D = v1 * (T.n + R(4, 15)); if (D > 3000 || meet >= D) return null; const tb = D / v1, ty = t0 + D / v2;
+  const names = pick([['兄', '弟'], ['姉', '妹'], ['Aさん', 'Bさん']]);
+  const pl = new Plane(-tb * 0.06, tb * 1.12, -D * 0.07, D * 1.14, 290, { sy: 210 / (D * 1.21) });
+  pl.fn(x => v1 * x, 0, tb, { w: 1.6 }).fn(x => v2 * (x - t0), t0, ty, { dash: '5 3', w: 1.6 }); pl.seg([0, D], [tb, D], { cls: 'thin', dash: '2 3' });
+  pl.lab([0, D], `${D}`, -16, 0, { size: 10 }).lab([t0, 0], `${t0}`, 0, 10, { size: 10 }).lab([tb, v1 * tb], names[0], 12, 10, { size: 11 }).lab([ty, D], names[1], -6, -10, { size: 11 });
+  const k = R(1, Math.floor(tb) - 1);
+  const items = [
+    { q: `${names[0]}が家を出発してから ${k} 分後の，家からの道のりを求めなさい。`, a: `${v1 * k} m` },
+    { q: `${names[1]}について，${Y} を ${X} の式で表しなさい。また，${X} の変域も答えなさい。`, a: `${lineEq(v2, -v2 * t0)}（${t0} ≦ ${X} ≦ ${fmtDec(ty)}）`, chk: 1 },
+    { q: `${names[1]}が${names[0]}に追いつくのは，${names[0]}が家を出発してから何分後か。また，それは家から何 m の地点か求めなさい。`, a: `${T.n} 分後，家から ${meet} m の地点`, ex: `${v1}${X} = ${v2}(${X} − ${t0}) を解く。` },
+    { q: `${names[1]}が図書館に着いたとき，${names[0]}は図書館まであと何 m の地点にいるか求めなさい。`, a: `${fmtDec(D - v1 * ty)} m` },
+  ];
+  if (!Number.isInteger(ty * 2)) return null;
+  return { title: '一次関数の利用（速さとグラフ）', lead: `${names[0]}は家から ${D} m 離れた図書館に向かって，分速 ${v1} m で歩いて出発した。${names[1]}は${names[0]}が出発してから ${t0} 分後に家を出発し，同じ道を分速 ${v2} m で自転車で追いかけた。下のグラフは，${names[0]}が家を出発してから ${X} 分後の家からの道のりを ${Y} m として，2人の ${X} と ${Y} の関係を表したものである（実線が${names[0]}，破線が${names[1]}）。<br>このとき，次の問いに答えなさい。`, fig: pl.toString(), items };
+};
+SO.idou = () => {
+  const s = R(2, 5), L = s * 2 + R(1, 4); const k = R(1, s * s - 1);
+  const x1 = R(1, s - 1 || 1); const d3 = R(1, s - 1 || 1); const x3 = L - s + d3; const y3 = q(2 * s * s - d3 * d3, 2);
+  // 図
+  const u = 200 / (L + s + 2); const base = 150; const x0 = 20;
+  const sv = new Svg(240, 180); sv.line(5, base, 235, base).text(232, base - 8, 'ℓ', { size: 13 });
+  const Q = [x0 + (s + 1) * u, base], R_ = [Q[0] + L * u, base], P = [Q[0], base - L * u];
+  sv.poly([P, Q, R_]).rightMark(Q, R_, P, 7);
+  const B = [Q[0] - s * u, base], C = [Q[0], base], D = [Q[0], base - s * u], A = [B[0], base - s * u];
+  sv.line(B[0] + 4, base + 16, B[0] + 34, base + 16, { w: 1.5 }).pline([[B[0] + 28, base + 12], [B[0] + 34, base + 16], [B[0] + 28, base + 20]], { w: 1.5 }); sv.poly([A, B, C, D], { fill: 'var(--shade)' }).poly([P, Q, R_]).text(A[0] - 8, A[1] - 6, 'A').text(B[0] - 8, B[1] + 11, 'B').text(C[0] - 6, C[1] + 12, 'C').text(D[0] - 9, D[1] - 7, 'D').text(P[0] + 8, P[1] - 4, 'P').text(Q[0] + 7, Q[1] + 12, 'Q').text(R_[0], R_[1] + 12, 'R');
+  const items = [
+    { q: `${X} = ${x1} のとき，${Y} の値を求めなさい。`, a: `${Y} = ${s * x1}` },
+    { q: `0 ≦ ${X} ≦ ${s} のとき，${Y} を ${X} の式で表しなさい。`, a: `${Y} = ${poly([[s, X]])}` },
+    { q: `${Y} の値が一定になるのは，${X} の値がどの範囲にあるときか。${X} の変域を求めなさい。`, a: L - s > s ? `${s} ≦ ${X} ≦ ${L - s}` : `${X} = ${s}`, ex: `正方形全体が三角形と重なっている間は ${Y} = ${s * s}` },
+    { q: `${X} = ${x3} のとき，${Y} の値を求めなさい。`, a: `${Y} = ${qh(y3)}`, ex: `正方形の右上の部分が，直角をはさむ辺が ${d3} cm の直角二等辺三角形の分だけ三角形の外に出る。` },
+    { q: `0 ≦ ${X} ≦ ${s} の範囲で，${Y} = ${k} となる ${X} の値を求めなさい。`, a: `${X} = ${qh(q(k, s))}` },
+  ];
+  if (L - s === s) return null;
+  return { title: '図形の移動と重なり', lead: `下の図のように，直線 ℓ 上に，1辺が ${s} cm の正方形ABCDと，PQ = QR = ${L} cm，∠PQR = 90° の直角二等辺三角形PQRがあり，頂点Cと頂点Qが重なっている。正方形ABCDを，直線 ℓ にそって矢印の向きに毎秒1 cm の速さで移動させる。移動を始めてから ${X} 秒後に，正方形ABCDと△PQRが重なっている部分の面積を ${Y} cm<sup>2</sup> とする。ただし，0 ≦ ${X} ≦ ${L} とし，${X} = 0 のときは ${Y} = 0 とする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items };
+};
+SO_LABEL.diagram = '速さとグラフ（追いつく問題）'; SO_LABEL.idou = '図形の移動と重なりの面積';
+SO.kabusoku = () => {
+  const it = pick([['鉛筆', '本'], ['画用紙', '枚'], ['あめ', '個'], ['ノート', '冊']]); const x = R(6, 40); const a = R(2, 5), c = a + R(1, 3); const b = R(1, 20), d = R(1, 20); const tot = a * x + b; if (c * x - d !== tot) { /* 条件を合わせる */ }
+  const d2 = c * x - tot; if (d2 <= 0) return null;
+  return { title: '一次方程式の利用（過不足）', lead: `何人かの生徒に${it[0]}を配る。1人に ${a} ${it[1]}ずつ配ると ${b} ${it[1]}余り，1人に ${c} ${it[1]}ずつ配ると ${d2} ${it[1]}たりない。生徒の人数を ${X} 人とする。<br>このとき，次の問いに答えなさい。`, items: [
+    { q: `${X} についての方程式をつくりなさい。`, a: `${a}${X} + ${b} = ${c}${X} − ${d2}` },
+    { q: `生徒の人数と，${it[0]}の数をそれぞれ求めなさい。`, a: `生徒 ${x} 人，${it[0]} ${tot} ${it[1]}` },
+    { q: `1人に ${c + 1} ${it[1]}ずつ配るためには，${it[0]}はあと何${it[1]}必要か求めなさい。`, a: `${(c + 1) * x - tot} ${it[1]}` },
+  ] };
+};
+SO.niji_bun = () => {
+  if (R(0, 1)) { const x = R(1, 4), H = R(8, 20), W = H + R(2, 10); const S = (H - x) * (W - x);
+    const sv = new Svg(230, 150); const u = 190 / W; const h = H * u; sv.rect(20, 10, W * u, h); const px = 20 + (W * u) * 0.4, py = 10 + h * 0.55, t = x * u; sv.rect(px, 10, t, h, { fill: 'var(--shade)' }).rect(20, py, W * u, t, { fill: 'var(--shade)' }).rect(20, 10, W * u, h);
+    sv.text(20 + W * u / 2, h + 24, `${W} m`, { size: 11 }).text(10, 10 + h / 2, `${H}m`, { size: 11, anchor: 'end' });
+    return { title: '2次方程式の利用（道の幅）', lead: `縦 ${H} m，横 ${W} m の長方形の土地に，下の図のように，縦と横に同じ幅の道をつくり，残りを花だんにする。花だんの面積の合計が ${S} m<sup>2</sup> になるようにするとき，道の幅を ${X} m とする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items: [
+      { q: `${X} についての方程式をつくりなさい。`, a: `(${H} − ${X})(${W} − ${X}) = ${S}`, ex: '道を土地の端に寄せて考えると，花だんは1つの長方形になる。' },
+      { q: `道の幅を求めなさい。`, a: `${x} m`, ex: `${poly([[1, X2], [-(H + W), X], [H * W - S, '']])} = 0 を解き，${X} &lt; ${H} を満たす解を選ぶ。` },
+    ] }; }
+  const c = R(2, 4), L = 2 * c + R(4, 12); const V = c * (L - 2 * c) ** 2;
+  return { title: '2次方程式の利用（箱をつくる）', lead: `正方形の厚紙の4すみから，1辺が ${c} cm の正方形を切り取り，ふたのない直方体の箱をつくったところ，容積が ${V} cm<sup>3</sup> になった。はじめの厚紙の1辺の長さを ${X} cm とする。<br>このとき，次の問いに答えなさい。`, items: [
+    { q: `箱の底面の1辺の長さを，${X} を用いた式で表しなさい。`, a: `(${X} − ${2 * c}) cm` },
+    { q: `${X} についての方程式をつくりなさい。`, a: `${c}(${X} − ${2 * c})<sup>2</sup> = ${V}` },
+    { q: `はじめの厚紙の1辺の長さを求めなさい。`, a: `${L} cm`, ex: `(${X} − ${2 * c})<sup>2</sup> = ${V / c}，${X} − ${2 * c} &gt; 0 より ${X} − ${2 * c} = ${L - 2 * c}` },
+  ] };
+};
+SO.shokuen = () => {
+  const a = pick([3, 4, 5, 6]), b = pick([8, 10, 12, 15]); const x = R(1, 8) * 50, y = R(1, 8) * 50; const T = x + y; const salt = a * x / 100 + b * y / 100; const c = salt * 100 / T; if (!Number.isInteger(c * 10) ) return null;
+  return { title: '連立方程式の利用（食塩水）', lead: `${a}% の食塩水と ${b}% の食塩水を混ぜて，${fmtDec(c, 1)}% の食塩水を ${T} g つくる。${a}% の食塩水を ${X} g，${b}% の食塩水を ${Y} g 混ぜるとする。<br>このとき，次の問いに答えなさい。`, items: [
+    { q: `できた ${fmtDec(c, 1)}% の食塩水にふくまれる食塩の重さを求めなさい。`, a: `${fmtDec(salt)} g` },
+    { q: `${X}，${Y} についての連立方程式をつくりなさい。`, a: `<span class="sys"><span>${X} + ${Y} = ${T}</span><span>${frac(a, 100)}${X} + ${frac(b, 100)}${Y} = ${fmtDec(salt)}</span></span>` },
+    { q: `${a}% の食塩水と ${b}% の食塩水を，それぞれ何 g 混ぜればよいか求めなさい。`, a: `${a}%：${x} g，${b}%：${y} g` },
+  ] };
+};
+Object.assign(SO_LABEL, { kabusoku: '一次方程式の利用（過不足）', niji_bun: '2次方程式の利用（道・箱）', shokuen: '連立方程式の利用（食塩水）' });
+function dialog(lines) { return `<div class="dialog">${lines.map(([who, t]) => `<div class="dl"><span class="who">${who}</span><span class="say">${t}</span></div>`).join('')}</div>`; }
+SO.kaiwa = () => {
+  const t = R(0, 2); const bx = s => `<span class="bx sm">${s}</span>`;
+  const names = pick([['ユイ', 'ケン'], ['ミサキ', 'リク'], ['ハナ', 'ソウタ']]);
+  if (t === 0) { // (n-1)(n+1)+1 = n^2
+    const e = R(5, 30); const val = (e - 1) * (e + 1) + 1; const nn = R(31, 90);
+    return { title: '会話文（連続する3つの整数）', lead: `次は，先生と${names[0]}さん，${names[1]}さんの会話である。<br>` + dialog([
+      ['先生', '連続する3つの整数で，最も大きい数と最も小さい数の積に1を加えると，どんな数になるか調べてみよう。'],
+      [names[0], `例えば，${e - 1}，${e}，${e + 1} だと，${e + 1} × ${e - 1} + 1 = ${bx('あ')} になります。`],
+      [names[1], `${bx('あ')} は，中央の数 ${e} の2乗になっています。いつもそうなるのかな。`],
+      ['先生', `中央の数を ${N_} として説明してみよう。`],
+      [names[0], `最も小さい数は ${bx('い')}，最も大きい数は ${bx('う')} と表せるから，(${bx('う')})(${bx('い')}) + 1 を計算すると ${bx('え')} になります。だから，いつも中央の数の2乗になります。`],
+    ]) + 'このとき，次の問いに答えなさい。', items: [
+      { q: `${bx('あ')} にあてはまる数を答えなさい。`, a: `${val}` },
+      { q: `${bx('い')}，${bx('う')}，${bx('え')} にあてはまる式を答えなさい。`, a: `い：${N_} − 1，う：${N_} + 1，え：${sup(N_, 2)}` },
+      { q: `連続する3つの正の整数で，最も大きい数と最も小さい数の積に1を加えた数が ${nn * nn} になるとき，3つの整数を求めなさい。`, a: `${nn - 1}，${nn}，${nn + 1}` },
+    ] };
+  }
+  if (t === 1) { // 2けたの数の入れかえ差
+    const a = R(2, 9), b = R(1, a - 1); const n = 10 * a + b, m = 10 * b + a; const d = n - m; const k = R(1, 8);
+    const ans = range(10, 99).filter(v => { const x = Math.floor(v / 10), y = v % 10; return y > 0 && x - y === k; });
+    return { title: '会話文（2けたの数）', lead: `次は，${names[0]}さんと${names[1]}さんの会話である。<br>` + dialog([
+      [names[0], `2けたの自然数から，その数の十の位の数と一の位の数を入れかえた数をひくと，どうなるかな。`],
+      [names[1], `${n} なら，${n} − ${m} = ${bx('あ')} だね。`],
+      [names[0], `十の位の数を ${A_}，一の位の数を ${B_} とすると，もとの数は ${bx('い')}，入れかえた数は 10${B_} + ${A_} と表せるよ。`],
+      [names[1], `差を計算すると ${bx('う')}(${A_} − ${B_}) になるから，差はいつも ${bx('う')} の倍数だね。`],
+    ]) + 'このとき，次の問いに答えなさい。', items: [
+      { q: `${bx('あ')} にあてはまる数を答えなさい。`, a: `${d}` },
+      { q: `${bx('い')} にあてはまる式と，${bx('う')} にあてはまる数を答えなさい。`, a: `い：10${A_} + ${B_}，う：9` },
+      { q: `もとの数から入れかえた数をひいた差が ${9 * k} になる2けたの自然数は，全部で何個あるか求めなさい。`, a: `${ans.length} 個（${ans.join('，')}）`, ex: `${A_} − ${B_} = ${k}` },
+    ] };
+  }
+  // 連続する2つの偶数の積+1 = 奇数の2乗
+  const e = R(2, 20) * 2; const val = e * (e + 2) + 1; const nn = R(10, 40);
+  return { title: '会話文（連続する偶数）', lead: `次は，先生と${names[0]}さんの会話である。<br>` + dialog([
+    ['先生', '連続する2つの偶数の積に1を加えると，どんな数になるだろう。'],
+    [names[0], `${e} と ${e + 2} なら，${e} × ${e + 2} + 1 = ${bx('あ')} です。これは ${e + 1} の2乗です。`],
+    ['先生', `2つの偶数の間にある奇数の2乗になっているね。${N_} を整数として，小さい方の偶数を 2${N_} として説明してみよう。`],
+    [names[0], `大きい方の偶数は ${bx('い')} だから，2${N_}(${bx('い')}) + 1 = ${bx('う')} = (2${N_} + 1)<sup>2</sup> となります。`],
+  ]) + 'このとき，次の問いに答えなさい。', items: [
+    { q: `${bx('あ')} にあてはまる数を答えなさい。`, a: `${val}` },
+    { q: `${bx('い')}，${bx('う')} にあてはまる式を答えなさい。`, a: `い：2${N_} + 2，う：4${sup(N_, 2)} + 4${N_} + 1` },
+    { q: `連続する2つの正の偶数の積に1を加えた数が ${(2 * nn + 1) ** 2} になるとき，2つの偶数を求めなさい。`, a: `${2 * nn}，${2 * nn + 2}` },
+  ] };
+};
+SO.dankai = () => {
+  const T0 = pick([30, 60]), p0 = pick([200, 300, 400]), u = pick([15, 20, 30]), p = pick([100, 150]); const fee = x => (x <= T0 ? p0 : p0 + Math.ceil((x - T0) / u) * p);
+  const Bu = 60, Bp = pick([300, 400, 500]); const feeB = x => Math.ceil(x / Bu) * Bp;
+  const x1 = T0 + u * R(1, 4) + R(1, u - 1); const target = p0 + p * R(2, 5); const k = (target - p0) / p; const lo = T0 + u * (k - 1), hi = T0 + u * k;
+  const xmax = T0 + u * 5; const x2 = R(2, 5) * 30 + R(1, 29);
+  const pl = new Plane(-xmax * 0.05, xmax * 1.08, -p0 * 0.3, fee(xmax) * 1.15, 290, { sy: 190 / (fee(xmax) * 1.45) });
+  let prev = 0; const edges = [T0]; for (let e = T0 + u; e <= xmax; e += u) edges.push(e); const segs = [[0, T0, p0]]; edges.slice(0, -1).forEach((e, i) => segs.push([e, edges[i + 1], fee(edges[i + 1])]));
+  segs.forEach(([s0, s1, v]) => { pl.seg([s0, v], [s1, v], { w: 1.8 }); pl.s.circle(pl.X(s0), pl.Y(v), 3, { fill: 'var(--paper)' }); pl.s.dot(pl.X(s1), pl.Y(v), 3); });
+  edges.forEach(e => pl.lab([e, 0], e, 0, 11, { size: 9 })); [p0, fee(xmax)].forEach(v => pl.lab([0, v], v, -16, 0, { size: 9 }));
+  const items = [
+    { q: `駐車時間が ${x1} 分のときの料金を求めなさい。`, a: `${fee(x1)} 円` },
+    { q: `${Y} は ${X} の関数であるといえるか。理由とともに答えなさい。`, a: `いえる。（${X} の値を決めると，${Y} の値がただ1つに決まるから。）` },
+    { q: `料金が ${target} 円になるのは，駐車時間が何分より長く何分以下のときか答えなさい。`, a: `${lo} 分より長く ${hi} 分以下` },
+    { q: `B駐車場は，60分ごとに ${Bp} 円の料金がかかる。駐車時間が ${x2} 分のとき，A駐車場とB駐車場ではどちらが何円安いか答えなさい。`, a: fee(x2) === feeB(x2) ? `どちらも ${fee(x2)} 円で同じ` : `${fee(x2) < feeB(x2) ? 'A' : 'B'}駐車場が ${Math.abs(fee(x2) - feeB(x2))} 円安い` },
+  ];
+  return { title: '関数の利用（段階的に変わる料金）', lead: `A駐車場の料金は，駐車時間が ${T0} 分以内なら ${p0} 円，${T0} 分をこえると ${u} 分ごとに ${p} 円ずつ加算される。駐車時間を ${X} 分，料金を ${Y} 円とするとき，下のグラフは ${X} と ${Y} の関係の一部を表したものである（●はその点をふくみ，○はふくまないことを表す）。<br>このとき，次の問いに答えなさい。`, fig: pl.toString(), items };
+};
+Object.assign(SO_LABEL, { kaiwa: '会話文形式（文字式の説明）', dankai: '段階的に変わる料金（駐車場）' });
+SO.teika = () => {
+  const x = R(8, 30) * 50, y = R(6, 30) * 50; const na = R(1, 3), nb = R(1, 3); const ra = pick([10, 20, 30]), rb = pick([10, 20, 25, 30, 40]); if (ra === rb) return null;
+  const S = na * x + nb * y; const T = na * x * (100 - ra) / 100 + nb * y * (100 - rb) / 100; if (!Number.isInteger(T)) return null;
+  const it = pick([['シャツ', 'ズボン'], ['ケーキ', 'プリン'], ['ノート', 'ペンケース']]);
+  return { title: '連立方程式の利用（定価と割引）', lead: `ある店で，${it[0]} ${na} 個と${it[1]} ${nb} 個を定価で買うと，代金の合計は ${S} 円である。セールの日に，${it[0]}は定価の ${ra}% 引き，${it[1]}は定価の ${rb}% 引きで売られていたので，同じ数だけ買うと代金の合計は ${T} 円になった。${it[0]} 1個の定価を ${X} 円，${it[1]} 1個の定価を ${Y} 円とする。<br>このとき，次の問いに答えなさい。`, items: [
+    { q: `${X}，${Y} についての連立方程式をつくりなさい。`, a: `<span class="sys"><span>${poly([[na, X], [nb, Y]])} = ${S}</span><span>${poly([[q(na * (100 - ra), 100), X], [q(nb * (100 - rb), 100), Y]])} = ${T}</span></span>` },
+    { q: `${it[0]}と${it[1]}の1個の定価をそれぞれ求めなさい。`, a: `${it[0]} ${x} 円，${it[1]} ${y} 円` },
+    { q: `セールの日に，${it[0]} 1個の値段は何円か求めなさい。`, a: `${x * (100 - ra) / 100} 円` },
+  ] };
+};
+SO.douten2 = () => {
+  const a = pick([6, 8, 10, 12]); const x0 = R(1, a / 2 - 1); const S = x0 * (a - x0); const x1 = R(1, a / 2);
+  const u = 160 / a; const A = [30, 20], B = [30, 20 + a * u], C = [30 + a * u, 20 + a * u], D = [30 + a * u, 20]; const P = [30, 20 + 2 * u], Qp = [30 + 3 * u, B[1]];
+  const sv = new Svg(230, a * u + 45); sv.poly([A, B, C, D]).poly([P, B, Qp], { fill: 'var(--shade)' }).poly([A, B, C, D]).dot(P[0], P[1]).dot(Qp[0], Qp[1]); sv.text(A[0] - 10, A[1] - 4, 'A').text(B[0] - 10, B[1] + 8, 'B').text(C[0] + 10, C[1] + 8, 'C').text(D[0] + 10, D[1] - 4, 'D').text(P[0] - 11, P[1], 'P').text(Qp[0], Qp[1] + 13, 'Q');
+  return { title: '2次方程式の利用（2つの動点）', lead: `下の図のように，1辺が ${a} cm の正方形ABCDがある。点Pは頂点Aを出発して辺AB上を毎秒1 cm の速さで頂点Bまで，点Qは点Pと同時に頂点Bを出発して辺BC上を毎秒2 cm の速さで頂点Cまで動く。点Qが頂点Cに着いたとき，2点P，Qは止まる。2点P，Qが出発してから ${X} 秒後の△PBQの面積を ${Y} cm<sup>2</sup> とする。<br>このとき，次の問いに答えなさい。`, fig: sv.toString(), items: [
+    { q: `${X} の変域を求めなさい。`, a: `0 ≦ ${X} ≦ ${a / 2}` },
+    { q: `${X} = ${x1} のとき，${Y} の値を求めなさい。`, a: `${Y} = ${x1 * (a - x1)}` },
+    { q: `${Y} を ${X} の式で表しなさい。`, a: `${Y} = ${poly([[-1, X2], [a, X]])}`, ex: `PB = ${a} − ${X}，BQ = 2${X} より ${Y} = ${frac(1, 2)} × (${a} − ${X}) × 2${X}` },
+    { q: `△PBQの面積が ${S} cm<sup>2</sup> となるのは，出発してから何秒後か求めなさい。`, a: `${x0} 秒後`, ex: `${X}(${a} − ${X}) = ${S} を解くと ${X} = ${x0}，${a - x0}。変域より ${X} = ${x0}` },
+  ] };
+};
+Object.assign(SO_LABEL, { teika: '連立方程式の利用（定価と割引）', douten2: '2次方程式の利用（2つの動点）' });
+
+// ===== 登録と画面 =====
+function shomonGroup(keys, title) { return () => { const ks = []; while (ks.length < 8) ks.push(...shuffle(keys)); const items = ks.slice(0, 8).map(genItem).map(it => ({ q: /[。]$|<\/svg>$|<\/div>$/.test(it.q) ? it.q : it.q + ' を計算しなさい。', a: it.a, ex: it.ex, tag: SM_LABEL[it.key] })); return { title, lead: `次の(1)〜(8)の問いに答えなさい。`, items }; }; }
+const FIELDS = {
+  shomon: { name: '小問集合', note: '計算・方程式・関数・データ・図形を1題に', pats: {
+    mix: ['おまかせ（入試の第1問形式）', genShomon], calc: ['計算だけ', shomonGroup(SM_CALC, '小問集合（計算）')], hou: ['方程式・因数分解', shomonGroup(SM_OTHER.hou, '小問集合（方程式）')],
+    kan: ['関数の小問', shomonGroup(SM_OTHER.kan, '小問集合（関数）')], kazu: ['数と式（平方根・不等式など）', shomonGroup(SM_OTHER.kazu, '小問集合（数と式）')], data: ['データ・確率の小問', shomonGroup(SM_OTHER.data, '小問集合（データ・確率）')], zu: ['図形の小問', shomonGroup(SM_OTHER.zu, '小問集合（図形）')] } },
+  kansuu: { name: '関数', note: '放物線・直線・反比例と面積', pats: Object.fromEntries(Object.keys(KF).map(k => [k, [KF_LABEL[k], KF[k]]])) },
+  zukei: { name: '平面・空間図形', note: '相似の証明・面積比・立体', pats: Object.fromEntries(Object.keys(ZU).map(k => [k, [ZU_LABEL[k], ZU[k]]])) },
+  kakuritsu: { name: '確率・データ', note: 'カード・玉・さいころ・箱ひげ図', pats: Object.fromEntries(Object.keys(KP).map(k => [k, [KP_LABEL[k], KP[k]]])) },
+  kisoku: { name: '規則性', note: 'n番目の式・数の表', pats: Object.fromEntries(Object.keys(KS).map(k => [k, [KS_LABEL[k], KS[k]]])) },
+  sonota: { name: '文章題・関数の利用', note: '動点・料金・連立方程式・説明', pats: Object.fromEntries(Object.keys(SO).map(k => [k, [SO_LABEL[k], SO[k]]])) },
+};
+function generate(field, pat) {
+  const F = FIELDS[field]; const key = pat === 'any' ? pick(Object.keys(F.pats)) : pat;
+  const prob = retry(() => { try { return F.pats[key][1](); } catch (e) { if (e.message === 'zero div') return null; throw e; } });
+  prob.field = field; prob.pat = key; return prob;
+}
+if (typeof module !== 'undefined') module.exports = { FIELDS, generate, SM, genItem, SM_LABEL };
+
+// ---- 画面 ----
+if (typeof document !== 'undefined') (function () {
+  const $ = s => document.querySelector(s);
+  const state = { field: 'shomon', pat: 'any', count: 1, probs: [], showAns: false };
+  try { const s = JSON.parse(localStorage.getItem('nyushi-gen') || '{}'); Object.assign(state, { field: s.field || state.field, pat: s.pat || 'any', count: s.count || 1 }); if (!FIELDS[state.field]) state.field = 'shomon'; } catch (e) { }
+  const save = () => { try { localStorage.setItem('nyushi-gen', JSON.stringify({ field: state.field, pat: state.pat, count: state.count })); } catch (e) { } };
+  function renderFields() {
+    $('#fields').innerHTML = Object.entries(FIELDS).map(([k, F]) => `<button type="button" class="field ${k === state.field ? 'on' : ''}" data-f="${k}" aria-pressed="${k === state.field}"><span class="fn">${F.name}</span><span class="fnote">${F.note}</span></button>`).join('');
+    const F = FIELDS[state.field]; const opts = [['any', 'おまかせ（パターンをランダムに）']].concat(Object.entries(F.pats).map(([k, v]) => [k, v[0]]));
+    if (state.field === 'shomon') opts.shift();
+    if (!opts.some(o => o[0] === state.pat)) state.pat = opts[0][0];
+    $('#pat').innerHTML = opts.map(([k, l]) => `<option value="${k}" ${k === state.pat ? 'selected' : ''}>${l}</option>`).join('');
+    $('#count').value = state.count;
+  }
+  function daimonHtml(p, i) {
+    const figOut = s => { const m = (s.match(/<svg/g) || []).length === 1 ? s.match(/<svg[\s\S]*?<\/svg>/) : null; return m ? `<div class="qfig">${m[0]}</div>` + s.replace(m[0], '') : s; };
+    const qs = p.items.map((it, j) => `<li><span class="qn">(${j + 1})</span><div class="qb">${figOut((it.tag && p.field === 'shomon' ? `<span class="tag">${it.tag}</span>` : '') + it.q)}<div class="ans"><span class="al">答</span>${it.a}</div></div></li>`).join('');
+    return `<section class="daimon" data-i="${i}"><header class="dh"><span class="dn">${i + 1}</span><span class="dt">${p.title}</span><button type="button" class="regen" data-i="${i}">この大問を作り直す</button></header><div class="lead">${p.lead}</div>${p.fig ? `<div class="figwrap">${p.fig}</div>` : ''}<ol class="qs">${qs}</ol></section>`;
+  }
+  function keyHtml() {
+    return `<h2 class="kh">解答・解説</h2>` + state.probs.map((p, i) => `<div class="kblock"><div class="kt"><span class="dn sm">${i + 1}</span>${p.title}</div><ol class="kl">${p.items.map((it, j) => `<li><span class="qn">(${j + 1})</span><div><div class="ka">${it.a}</div>${it.ex ? `<div class="kx">${it.ex}</div>` : ''}</div></li>`).join('')}</ol></div>`).join('');
+  }
+  function render() {
+    $('#sheet').innerHTML = state.probs.map(daimonHtml).join('');
+    $('#key').innerHTML = keyHtml();
+    document.body.classList.toggle('show-ans', state.showAns);
+    $('#ans').setAttribute('aria-pressed', state.showAns); $('#ans').textContent = state.showAns ? '答えをかくす' : '答えを表示';
+    const F = FIELDS[state.field]; $('#stamp').textContent = `${F.name}　${state.probs.length}題`;
+  }
+  function make() { state.probs = []; for (let i = 0; i < state.count; i++) state.probs.push(generate(state.field, state.pat)); render(); }
+  $('#fields').addEventListener('click', e => { const b = e.target.closest('.field'); if (!b) return; state.field = b.dataset.f; state.pat = state.field === 'shomon' ? 'mix' : 'any'; renderFields(); save(); make(); });
+  $('#pat').addEventListener('change', e => { state.pat = e.target.value; save(); make(); });
+  $('#count').addEventListener('change', e => { state.count = Math.max(1, Math.min(5, +e.target.value || 1)); save(); make(); });
+  $('#go').addEventListener('click', make);
+  $('#ans').addEventListener('click', () => { state.showAns = !state.showAns; render(); });
+  $('#sheet').addEventListener('click', e => { const b = e.target.closest('.regen'); if (!b) return; const i = +b.dataset.i; const p = state.probs[i]; state.probs[i] = generate(p.field, state.pat === 'any' ? 'any' : p.pat); render(); });
+  if (window.self === window.top) { $('#print').hidden = false; $('#print').addEventListener('click', () => window.print()); }
+  renderFields(); make();
+})();
+
+</script>
