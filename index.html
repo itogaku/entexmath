@@ -1,4 +1,7 @@
-<title>入試数学 大問ジェネレーター</title>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>入試数学 大問ジェネレーター (Copy)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=BIZ+UDPMincho:wght@400;700&family=Zen+Kaku+Gothic+New:wght@700;900&display=swap">
@@ -127,7 +130,35 @@ sup { font-size: .7em; }
 .kx { font-size: .85rem; color: var(--sub); }
 .foot { margin-top: 26px; font-size: .78rem; color: var(--sub); }
 @media (max-width: 560px) { .daimon { padding: 16px 14px; font-size: 15px; } .qs > li, .kl li { grid-template-columns: 2em 1fr; } .choices { grid-template-columns: 1fr 1fr; } }
+/* ===== A4プリント ===== */
+.printroot { position: absolute; left: -12000px; top: 0; --ink: #111; --paper: #fff; --sub: #444; --line: #999; --grid: #d8d8d8; --red: #c0271d; --shade: #c4c4c4; --chip: #f1f1f1; --accent: #111; color: #111; background: #fff; font-family: var(--mincho); }
+.ppage { width: 210mm; height: 297mm; padding: 13mm 14mm 10mm; box-sizing: border-box; background: #fff; display: flex; flex-direction: column; overflow: hidden; font-size: 13.5px; line-height: 1.75; }
+.ppage .pbody { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 9px; min-height: 0; } .ppage .pbody > * { flex-shrink: 0; }
+.ppage .pfoot { height: 20px; flex-shrink: 0; text-align: center; font-family: var(--gothic); font-size: 10px; color: #555; padding-top: 4px; }
+.ph { border-bottom: 2px solid #111; padding-bottom: 6px; margin-bottom: 10px; display: grid; gap: 4px; }
+.ph-t { display: flex; align-items: baseline; gap: 14px; } .ph-t b { font-family: var(--display); font-size: 19px; } .ph-k { font-family: var(--gothic); font-size: 12px; border: 1.5px solid #111; padding: 0 8px; }
+.pa .ph-k { color: var(--red); border-color: var(--red); }
+.ph-sub { font-family: var(--gothic); font-size: 10.5px; color: #444; }
+.ph-name { display: flex; gap: 6px; justify-content: flex-end; font-family: var(--gothic); font-size: 11px; } .ph-name span { border-bottom: 1px solid #111; min-width: 3.6em; padding: 0 4px; text-align: right; } .ph-name .nm { min-width: 15em; text-align: left; }
+.ph.small { border-bottom: 1px solid #999; font-family: var(--gothic); font-size: 10.5px; color: #444; padding-bottom: 3px; margin-bottom: 8px; display: block; }
+.pd-h { display: flex; align-items: center; gap: 8px; font-family: var(--gothic); margin-bottom: 2px; } .pd-t { font-size: 11px; color: #444; } .pd-code { margin-left: auto; font-size: 10px; color: #666; }
+.ppage .dn { min-width: 24px; height: 24px; font-size: .95rem; }
+.ppage .lead { margin: 2px 0 4px; } .ppage .figwrap { margin: 4px 0 6px; } .ppage .figwrap svg, .ppage .qfig svg { max-height: 255px; width: auto; }
+.pi { display: grid; grid-template-columns: 2.4em 1fr; }
+.aspace { margin: 4px 0 2px 2.4em; border: 1px solid #aaa; border-radius: 3px; min-height: 30px; position: relative; } .aspace span { position: absolute; left: 6px; top: 4px; font-family: var(--gothic); font-size: 10px; color: #777; }
+.aspace.mid { min-height: 60px; } .aspace.big { min-height: 96px; }
+.pc-ahead { margin-top: 6px; border-bottom: 1px solid #bbb; padding-bottom: 2px; }
+.pc-ans { display: grid; grid-template-columns: 2.4em 1fr; } .pc-ans .ka { color: var(--red); font-family: var(--gothic); } .pc-ans .kx { font-size: 12px; color: #444; }
+.ppage .ansfig svg { width: 240px; }
+.pc.tight .figwrap svg, .pc.tight .qfig svg { max-height: 190px; } .pc.tighter { font-size: 12px; line-height: 1.6; } .pc.tighter .figwrap svg, .pc.tighter .qfig svg { max-height: 150px; } .pc.tighter .aspace.big { min-height: 60px; }
+.printrow { border-top: 1px dashed var(--line); padding-top: 10px; } .prl { font-size: .82rem; color: var(--sub); } .printmsg { font-size: .82rem; color: var(--accent); }
+.pdfbtn:disabled { opacity: .5; cursor: wait; }
+@page { size: A4 portrait; margin: 0; }
 @media print {
+  body.printing > .wrap { display: none !important; }
+  body.printing .printroot { position: static; left: 0; }
+  body.printing .ppage { break-after: page; } body.printing .ppage:last-child { break-after: auto; }
+
   :root { --bg: #fff; --paper: #fff; --ink: #000; --red: #c00; }
   .no-print, .regen, .top .stamp { display: none !important; }
   body { background: #fff; }
@@ -154,6 +185,7 @@ sup { font-size: .7em; }
       <button type="button" class="btn ghost" id="print" hidden>印刷</button>
       <form id="codeform" class="codeform"><label for="code">問題番号</label><input id="code" type="text" inputmode="text" placeholder="例 1-00-123456-32" autocomplete="off"><button type="submit" class="btn ghost">番号から出す</button></form>
     </div>
+    <div class="row printrow"><span class="prl">プリント（A4・PDF）</span><button type="button" class="btn pdfbtn" data-pdf="q">問題プリント</button><button type="button" class="btn pdfbtn" data-pdf="a">解答プリント</button><button type="button" class="btn ghost pdfbtn" data-pdf="both">問題と解答をまとめて</button><span class="printmsg" id="printmsg" role="status"></span></div>
     <div class="codemsg" id="codemsg" role="status"></div>
   </div>
   <div id="moshihead"></div>
@@ -2052,8 +2084,85 @@ if (typeof document !== 'undefined') (function () {
     renderFields(); save(); render(); $('#codemsg').textContent = '番号の問題を出しました。';
   });
   $('#sheet').addEventListener('click', e => { const b = e.target.closest('.regen'); if (!b) return; const i = +b.dataset.i; const p = state.probs[i]; const keepPat = state.field === 'moshi' || state.pat !== 'any'; state.probs[i] = generateAny(p.field, keepPat ? p.pat : 'any', state.grade, state.level); render(); });
-  if (window.self === window.top) { $('#print').hidden = false; $('#print').addEventListener('click', () => window.print()); }
+  if (window.self === window.top) { $('#print').hidden = false; $('#print').addEventListener('click', () => window.__nyushiPrint && window.__nyushiPrint()); }
+  window.__NYUSHI__ = () => { const isM = state.field === 'moshi'; const codes = state.probs.map(p => p.code); return { probs: state.probs, sheetTitle: isM ? '数学 模試' : `数学 入試問題（${FIELDS[state.field].name}）`, sub: `${GRADE_NAME[state.grade]}・${LEVEL_NAME[state.level]}　大問 ${state.probs.length}題${isM ? '　制限時間 50分' : ''}`, setCode: isM ? state.moshiCode : '', fileTag: isM ? state.moshiCode : codes[0] + (codes.length > 1 ? `ほか${codes.length - 1}題` : '') }; };
   renderFields(); make();
 })();
 
+// ===== A4プリント（問題用紙・解答用紙）とPDF =====
+if (typeof document !== 'undefined') (function () {
+  const $ = s => document.querySelector(s);
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+  function root() { let r = $('#printroot'); if (!r) { r = el('div', 'printroot'); r.id = 'printroot'; document.body.appendChild(r); } return r; }
+  const info = () => window.__NYUSHI__ && window.__NYUSHI__();
+  function figOut(s) { const m = (s.match(/<svg/g) || []).length === 1 ? s.match(/<svg[\s\S]*?<\/svg>/) : null; return m ? `<div class="qfig">${m[0]}</div>` + s.replace(m[0], '') : s; }
+  function spaceFor(it) { const t = (it.q || '').replace(/<[^>]+>/g, ''); if (/説明しなさい|証明/.test(t) && !/記号で答え/.test(t)) return 'big'; if (/作図/.test(t)) return 'none'; if (/計算をしなさい/.test(t)) return 'mid'; return 'small'; }
+  function problemPieces(st) {
+    const out = [];
+    st.probs.forEach((p, i) => {
+      out.push(el('div', 'pc pc-head', `<div class="pd-h"><span class="dn">${i + 1}</span><span class="pd-t">${p.title}</span><span class="pd-code">No. ${p.code}</span></div><div class="lead">${p.lead}</div>${p.fig ? `<div class="figwrap">${p.fig}</div>` : ''}`));
+      p.items.forEach((it, j) => { const sp = spaceFor(it); out.push(el('div', 'pc pc-item', `<div class="pi"><span class="qn">(${j + 1})</span><div class="qb">${figOut(it.q)}</div></div>${sp === 'none' ? '' : `<div class="aspace ${sp}"><span>答</span></div>`}`)); });
+    });
+    return out;
+  }
+  function answerPieces(st) {
+    const out = [];
+    st.probs.forEach((p, i) => {
+      out.push(el('div', 'pc pc-ahead', `<div class="pd-h"><span class="dn">${i + 1}</span><span class="pd-t">${p.title}</span><span class="pd-code">No. ${p.code}</span></div>`));
+      p.items.forEach((it, j) => out.push(el('div', 'pc pc-ans', `<span class="qn">(${j + 1})</span><div><div class="ka">${it.a}</div>${it.ex ? `<div class="kx">${it.ex}</div>` : ''}</div>`)));
+    });
+    return out;
+  }
+  function header(kind, st, first) {
+    const title = kind === 'q' ? '問題' : '解答・解説';
+    if (!first) return `<div class="ph small"><span>${st.sheetTitle}　${title}</span></div>`;
+    return `<div class="ph"><div class="ph-t"><b>${st.sheetTitle}</b><span class="ph-k">${title}</span></div><div class="ph-sub">${st.sub}${st.setCode ? `　セット番号 ${st.setCode}` : ''}</div>${kind === 'q' ? '<div class="ph-name"><span>年</span><span>組</span><span>番</span><span class="nm">名前</span></div>' : ''}</div>`;
+  }
+  function paginate(kind, st, container) {
+    const pieces = kind === 'q' ? problemPieces(st) : answerPieces(st); const pages = [];
+    const mk = () => { const pg = el('div', 'ppage ' + (kind === 'q' ? 'pq' : 'pa')); pg.innerHTML = header(kind, st, pages.length === 0); const body = el('div', 'pbody'); const foot = el('div', 'pfoot', '問題　1 / 1'); pg.append(body, foot); container.appendChild(pg); pages.push(pg); return body; };
+    let body = mk();
+    const over = () => body.scrollHeight > body.clientHeight;
+    pieces.forEach(pc => { body.appendChild(pc); if (over() && body.children.length > 1) { body.removeChild(pc); body = mk(); body.appendChild(pc); }
+      if (over() && body.children.length === 1) { pc.classList.add('tight'); if (over()) pc.classList.add('tighter'); } }); // 1つで1ページに入らないときは図と文字を小さく
+    // 仕上げ：はみ出したページは末尾の要素を次のページへ送る
+    for (let i = 0; i < pages.length; i++) { const bd = pages[i].querySelector('.pbody'); let guard = 0; while (bd.scrollHeight > bd.clientHeight && bd.children.length > 1 && guard++ < 50) { if (i === pages.length - 1) mk(); const nb = pages[i + 1].querySelector('.pbody'); nb.insertBefore(bd.lastElementChild, nb.firstChild); } }
+    pages.forEach((pg, i) => { pg.querySelector('.pfoot').textContent = `${kind === 'q' ? '問題' : '解答'}　${i + 1} / ${pages.length}`; });
+    return pages;
+  }
+  function build(which) { const st = info(); if (!st || !st.probs.length) return null; const r = root(); r.innerHTML = ''; let pages = []; if (which !== 'a') pages = pages.concat(paginate('q', st, r)); if (which !== 'q') pages = pages.concat(paginate('a', st, r)); return { st, pages }; }
+  // html2canvas は外部CSSを読まないので，SVGの線や文字の色を属性に書き込む
+  function inlineSvg(page) { page.querySelectorAll('svg *').forEach(n => { const cs = getComputedStyle(n); ['stroke', 'fill', 'stroke-width', 'stroke-dasharray', 'font-size', 'font-family', 'font-style'].forEach(p => { const v = cs.getPropertyValue(p); if (v) n.setAttribute(p, v); }); }); }
+  async function saveFile(filename, blob) {
+    try { if (window.claude && window.claude.use) { const dl = await window.claude.use('downloads'); if (dl) { await dl.save({ filename, data: blob }); return 'saved'; } } } catch (e) { if (e && e.code === 'declined') return 'declined'; throw e; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); return 'saved';
+  }
+  function htmlFile(which, st, pages) {
+    const css = [...document.querySelectorAll('style')].map(s => s.textContent).join('\n'); const font = document.querySelector('link[rel=stylesheet]'); const title = `数学プリント ${which === 'q' ? '問題' : which === 'a' ? '解答' : '問題と解答'}`;
+    return `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>${font ? font.outerHTML : ''}<style>${css}
+body{background:#8a8f8c;margin:0}.printroot{position:static;left:0;padding:12px 0}.ppage{margin:0 auto 12px;box-shadow:0 1px 6px rgba(0,0,0,.3)}
+@media print{body{background:#fff}.printroot{padding:0}.ppage{margin:0;box-shadow:none;break-after:page}.ppage:last-child{break-after:auto}}</style></head><body><div class="printroot">${pages.map(p => p.outerHTML).join('')}</div><script>window.addEventListener('load',function(){setTimeout(function(){window.print()},700)})<\/script></body></html>`;
+  }
+  async function makePdf(which) {
+    const msg = $('#printmsg');
+    if (!window.jspdf || !window.html2canvas) { // PDFの部品が使えないときは印刷用HTMLを保存
+      const b = build(which); if (!b) return; const name = `数学プリント_${which === 'q' ? '問題' : which === 'a' ? '解答' : '問題と解答'}_${b.st.fileTag}.html`;
+      try { const r = await saveFile(name, new Blob([htmlFile(which, b.st, b.pages)], { type: 'text/html' })); msg.textContent = r === 'saved' ? `PDFの部品を読み込めなかったため，印刷用ファイル「${name}」を保存しました。開くと印刷画面が出ます（${b.pages.length}ページ）。` : '保存を取り消しました。'; } catch (e) { msg.textContent = '保存に失敗しました：' + (e && (e.message || e.code) || e); } finally { root().innerHTML = ''; } return; }
+    const b = build(which); if (!b) return; const { st, pages } = b; const { jsPDF } = window.jspdf; const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    document.querySelectorAll('.pdfbtn').forEach(x => (x.disabled = true));
+    try {
+      for (let i = 0; i < pages.length; i++) { msg.textContent = `PDFを作成中… ${i + 1} / ${pages.length} ページ`; inlineSvg(pages[i]); const c = await window.html2canvas(pages[i], { scale: 2, backgroundColor: '#ffffff', logging: false, scrollX: 0, scrollY: 0, onclone: doc => { const r = doc.getElementById('printroot'); if (r) { r.style.left = '0px'; r.style.top = '0px'; } } }); if (i) pdf.addPage(); pdf.addImage(c.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, 210, 297); }
+      const name = `数学プリント_${which === 'q' ? '問題' : which === 'a' ? '解答' : '問題と解答'}_${st.fileTag}.pdf`;
+      const r = await saveFile(name, pdf.output('blob')); msg.textContent = r === 'saved' ? `「${name}」（${pages.length}ページ）を保存しました。` : '保存を取り消しました。';
+    } catch (e) { msg.textContent = 'PDFの保存に失敗しました：' + (e && (e.message || e.code) || e); }
+    finally { document.querySelectorAll('.pdfbtn').forEach(x => (x.disabled = false)); root().innerHTML = ''; }
+  }
+  document.addEventListener('click', e => { const t = e.target.closest('[data-pdf]'); if (t) makePdf(t.dataset.pdf); });
+  // 公開ページの外（ファイルを直接開いたとき）はブラウザの印刷でも同じページ組みにする
+  window.__nyushiBuild = build; window.__nyushiHtml = (w) => { const b = build(w); return b && htmlFile(w, b.st, b.pages); };
+  window.__nyushiPrint = () => { const b = build('both'); if (!b) return; document.body.classList.add('printing'); setTimeout(() => { window.print(); setTimeout(() => { document.body.classList.remove('printing'); root().innerHTML = ''; }, 500); }, 100); };
+})();
+
 </script>
+
+</body></html>
